@@ -108,7 +108,7 @@ class _WordFindWidgetState extends State<WordFindWidget> {
   @override
   Widget build(BuildContext context) {
     Question currentQues = listQuestions[indexQues];
-
+   var screenSize=MediaQuery.of(context).size;
     return SizedBox(
       width: double.maxFinite,
       child: Column(
@@ -121,116 +121,100 @@ class _WordFindWidgetState extends State<WordFindWidget> {
                 color: Colors.green,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      "${currentQues.questionPrice}",
-                      textScaleFactor: 3,
+                    Center(
+                      child: Text(
+                        "${currentQues.questionPrice!.toStringAsFixed(2)} ₺",
+                        textScaleFactor: 3,
+                      ),
                     ),
                   ],
                 ),
               )),
-          // Container(
-          //   padding: const EdgeInsets.all(10),
-          //   alignment: Alignment.center,
-          //   child: Text(
-          //     currentQues.question ?? '',
-          //     style: const TextStyle(
-          //       fontSize: 25,
-          //       color: Colors.white,
-          //       fontWeight: FontWeight.bold,
-          //     ),
-          //   ),
-          // ),
           Expanded(
             flex: 6,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 10),
-                  alignment: Alignment.center,
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.max,
-                        children: currentQues.userAnswerMap!.map((userAnswer) {
-                          // later change color based condition
-                          Color? color;
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 10),
+                    alignment: Alignment.center,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisSize: MainAxisSize.min,
 
-                          if (userAnswer.isEmpty()) {
-                            color = Colors.white;
-                          } else if (userAnswer.isTrue()) {
-                            color = Colors.green;
-                          } else {
-                            color = Colors.red;
-                          }
+                          children: currentQues.answerMap!.map((answerKeyItem) {
+                            // later change color based condition
+                            Color? color;
 
-                          // else if (currentQues.isDone) {
-                          //   color = Colors.green[300];
-                          // } else if (userAnswer.hintShow) {
-                          //   color = Colors.yellow[100];
-                          // } else if (currentQues.isFull) {
-                          //   color = Colors.red;
-                          // }
-                          // else {
-                          //   color = Colors.white;
-                          // }
+                            if (answerKeyItem.isEmpty()) {
+                              color = Colors.white;
+                            } else if (answerKeyItem.isValueMatch()) {
+                              color = Colors.green;
+                            } else {
+                              color = Colors.red;
+                            }
 
-                          return InkWell(
-                            onTap: () {
-                              if (userAnswer.currentValue == null || userAnswer.hintShow || currentQues.isDone) return;
+                            return InkWell(
+                              onTap: () {
+                                //todo isClickable function
+                              if(answerKeyItem.isNotClickable())return;
 
-                              //currentQues.isFull = false;
-                              currentQues.insertKeyPad( userAnswer);
-                              userAnswer.clearValue();
+                                currentQues.reInsertPadKey(answerKeyItem);
+                                answerKeyItem.clearValue();
 
-                              setState(() {});
-                            },
-                            child: Container(
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: color,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              width: MediaQuery.of(context).size.width * 0.06,
-                              height: constraints.biggest.width / 7 - 6,
-                              margin: const EdgeInsets.all(3),
-                              child: Text(
-                                (userAnswer.currentValue ?? ''),
-                                style: const TextStyle(
-                                  fontSize: 25,
-                                  fontWeight: FontWeight.bold,
+                                setState(() {});
+                              },
+                              child: Container(
+                                //todo make 12 dynamic
+                                width: screenSize.width*1/12,
+
+                                height:screenSize.width * 0.11,
+
+                                decoration: BoxDecoration(
+                                  color: color,
+                                    border: Border.all(color: Colors.blueAccent,width: 2)
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  (answerKeyItem.currentValue ?? ''),
+                                  style: const TextStyle(
+                                    // fontSize: Size.aspectRatio*0.1,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textScaleFactor: 2,
                                 ),
                               ),
-                            ),
-                          );
-                        }).toList(),
-                      );
-                    },
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
                   ),
                 ),
                 Expanded(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                          padding: const EdgeInsets.all(10),
+                          padding: const EdgeInsets.all(5),
                           alignment: Alignment.center,
                           child: Wrap(
                             runSpacing: 5,
                             spacing: 5,
                             alignment: WrapAlignment.center,
-                            children: List.generate(currentQues.keyPad!.length, (index) {
-                              var selectedKeyPad = currentQues.keyPad![index];
+                            children: List.generate(currentQues.keyboardMap!.length, (index) {
+                              var selectedKeyPad = currentQues.keyboardMap![index];
                               Color color = const Color(0xff7EE7FD);
                               return InkWell(
                                 onTap: () async {
-
-                                  currentQues.setSelectedKeyPrize(selectedKeyPad);
-
-                                  currentQues.removeKeyPad(index);
+                                  currentQues.setSelectedPadKeyPrize(selectedKeyPad);
+                                  currentQues.removePadKey(lastPadKeyIndex:index);
 
                                   if (currentQues.isAnswerCorrect()) {
                                     currentQues.isDone = true;
@@ -243,20 +227,20 @@ class _WordFindWidgetState extends State<WordFindWidget> {
                                   setState(() {});
                                 },
                                 child: Container(
-                                  height: MediaQuery.of(context).size.width * 0.12,
-                                  width: (MediaQuery.of(context).size.width - 4 * (10 - 1)) / 10,
+                                  height: MediaQuery.of(context).size.width * 0.14,
+                                  width: MediaQuery.of(context).size.width *0.13,
                                   decoration: BoxDecoration(
                                     color: color,
-                                    borderRadius: BorderRadius.circular(4),
+                                    borderRadius: BorderRadius.circular(30),
                                   ),
                                   alignment: Alignment.center,
                                   child: Text(
-                                    currentQues.keyPad![index].value!,
+                                    currentQues.keyboardMap![index].value!,
                                     style: const TextStyle(
                                       // fontSize: Size.aspectRatio*0.1,
                                       fontWeight: FontWeight.bold,
                                     ),
-                                    textScaleFactor: 1.3,
+                                    textScaleFactor: 1.8,
                                   ),
                                 ),
                               );
@@ -265,39 +249,37 @@ class _WordFindWidgetState extends State<WordFindWidget> {
                     ],
                   ),
                 ),
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.cleaning_services),
-                        iconSize: 30,
-                        color: Colors.white,
-                        onPressed: () {
-                          currentQues.clearQuestionBoard();
-                          setState(() {});
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.favorite),
-                        iconSize: 30,
-                        color: hintCount > 1 ? Colors.grey : Colors.white,
-                        onPressed: () {
-                          generateHint();
-                          setState(() {});
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.refresh),
-                        iconSize: 30,
-                        color: Colors.white,
-                        onPressed: () {
-                          currentQues = QuestionServices().reShuffleQuestionKeyPad(currentQuestion: currentQues);
-                          setState(() {});
-                        },
-                      )
-                    ],
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.cleaning_services),
+                      iconSize: 30,
+                      color: Colors.white,
+                      onPressed: () {
+                        currentQues.clearQuestionBoard();
+                        setState(() {});
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.favorite),
+                      iconSize: 30,
+                      color: hintCount > 1 ? Colors.grey : Colors.white,
+                      onPressed: () {
+                        generateHint();
+                        setState(() {});
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.refresh),
+                      iconSize: 30,
+                      color: Colors.white,
+                      onPressed: () {
+                        currentQues = QuestionServices().reShuffleQuestionKeyPad(currentQuestion: currentQues);
+                        setState(() {});
+                      },
+                    )
+                  ],
                 ),
               ],
             ),
@@ -315,6 +297,7 @@ class _WordFindWidgetState extends State<WordFindWidget> {
   void generatePuzzle() {
     listQuestions = QuestionServices().creteQuestionList();
     hintCount = 0; //number hint per ques we hit
+    indexQues=0;
     setState(() {});
   }
 
@@ -324,14 +307,16 @@ class _WordFindWidgetState extends State<WordFindWidget> {
     }
   }
 
+  //todo hintCount dynamic
   generateHint() async {
-    if (hintCount > 1) return;
+    if (hintCount > 50) return;
 
-    // let declare hint
     Question currentQues = listQuestions[indexQues];
+    // Clear board and fill keyPad again to avoid empty search for already removed items from keyPad..
+    currentQues.clearQuestionBoard();
 
-    List<AnswerMap> mapWithNoHints =
-        currentQues.userAnswerMap!.where((item) => !item.hintShow && item.currentIndex == null).toList();
+    List<AnswerKey> mapWithNoHints =
+        currentQues.answerMap!.where((item) => !item.hintShow && item.isEmpty()).toList();
 
     if (mapWithNoHints.isNotEmpty) {
       hintCount++;
@@ -340,11 +325,10 @@ class _WordFindWidgetState extends State<WordFindWidget> {
       var userAnswer = mapWithNoHints[indexHint];
       userAnswer.currentValue = userAnswer.correctValue;
       userAnswer.hintShow = true;
-     // userAnswer.currentIndex = userAnswer.correctIndex;
 
       // remove hint from keypad ( avoid multiple removing find first occurrence then clear)
-      var theValue = currentQues.keyPad!.where((element) => element.value == userAnswer.correctValue).first;
-      currentQues.keyPad!.remove(theValue);
+      var theValue = currentQues.keyboardMap!.where((element) => element.value == userAnswer.correctValue).first;
+      currentQues.keyboardMap!.remove(theValue);
 
       if (currentQues.isAnswerCorrect()) {
         currentQues.isDone = true;

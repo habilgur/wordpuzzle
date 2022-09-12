@@ -4,31 +4,32 @@ import 'package:wordpuzzle/WordBank/turkish_list.dart';
 
 import '../WordBank/alphabet.dart';
 
-KeyValue lastClickedKeyPad = KeyValue();
+PadKey lastClickedKeyPad = PadKey();
 
 class QuestionServices {
   List<Question> creteQuestionList() {
     List<Question> quesList = [];
+    var theList=turkishWords.where((item) => item.length<12).toList();
 
     //todo make 10 dynamic
     for (int i = 0; i <= 10; i++) {
-      var question = turkishWords[Random().nextInt(turkishWords.length)].toLowerCase();
+      var question = theList[Random().nextInt(theList.length)].toLowerCase();
 
       // Create User Answer Map
       var userAnswerMap = List.generate(question.split("").length, (index) {
-        return AnswerMap(correctValue: question.split("")[index], correctIndex: index);
+        return AnswerKey(correctValue: question.split("")[index], correctIndex: index);
       });
 
       // create Shuffled Chars
-      List<KeyValue> shuffledKeyPad = createShuffleKeyPad(question);
+      List<PadKey> shuffledPadKeys = createShufflePadKeys(question);
 
       // Finalize Question
       quesList.add(
         Question(
           question: question,
           questionPrice: 1,// todo make it dynamic via question
-          keyPad: shuffledKeyPad,
-          userAnswerMap: userAnswerMap,
+          keyboardMap: shuffledPadKeys,
+          answerMap: userAnswerMap,
         ),
       );
     }
@@ -36,19 +37,19 @@ class QuestionServices {
     return quesList;
   }
 
-  List<KeyValue> createShuffleKeyPad(String question) {
+  List<PadKey> createShufflePadKeys(String question) {
     //todo random key number set
     var randomKey= turkishAlphabet[Random().nextInt(turkishAlphabet.length)].toLowerCase();
 
     List<String> questionWithRandomKeys= question.split("");
     questionWithRandomKeys.add(randomKey);
 
-    List<KeyValue> shuffledCharsKeyPad = [];
+    List<PadKey> shuffledCharsKeyPad = [];
     for (int i = 0; i < questionWithRandomKeys.length ; i++) {
       shuffledCharsKeyPad.add(
-        KeyValue(
+        PadKey(
           value: questionWithRandomKeys[i],
-          currentKeyPadIndex: i,
+          currentIndex: i,
           isClicked: false,
         ).clone(),
       );
@@ -62,7 +63,7 @@ class QuestionServices {
 
   reShuffleQuestionKeyPad({required Question currentQuestion}) {
     if (currentQuestion.isDone) return;
-    currentQuestion.keyPad!.shuffle();
+    currentQuestion.keyboardMap!.shuffle();
     return currentQuestion;
   }
 

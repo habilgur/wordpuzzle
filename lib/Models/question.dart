@@ -3,39 +3,36 @@ class Question {
   double? questionPrice = 0;
   bool isDone = false;
   bool isFull = false;
-  List<AnswerMap>? userAnswerMap = <AnswerMap>[];
-  List<KeyValue>? keyPad = <KeyValue>[];
+  List<AnswerKey>? answerMap = <AnswerKey>[];
+  List<PadKey>? keyboardMap = <PadKey>[];
 
   Question({
     this.question,
     this.questionPrice,
-    this.userAnswerMap,
-    this.keyPad,
+    this.answerMap,
+    this.keyboardMap,
   });
 
-  void setWordFindChar(List<AnswerMap> puzzles) => puzzles = puzzles;
+  // void setWordFindChar(List<AnswerKey> puzzles) => puzzles = puzzles;
 
-  void setIsDone() => isDone = true;
+  // void setIsDone() => isDone = true;
 
   bool isAnswerCorrect() {
+    if (!isAnswerMapFull()) return false;
 
-    if (!isAnswerFull()) return false;
-
-    String answeredString = userAnswerMap!.map((m) => m.currentValue).join("");
+    String answeredString = answerMap!.map((m) => m.currentValue).join("");
 
     // if same string, answer is correct..yeay
     return answeredString == question;
   }
 
-  void setSelectedKeyPrize(KeyValue selectedKey) {
-
+  void setSelectedPadKeyPrize(PadKey selectedPadKey) {
     // Avoid range Error Index
-    if(isAnswerFull()) return;
+    if (isAnswerMapFull()) return;
 
-    var firstEmptyMap = userAnswerMap!.where((puzzle) => puzzle.currentValue == null).first;
+    var firstEmptyAnswerKey = answerMap!.where((k) => k.currentValue == null).first;
 
-
-    bool isCorrect = firstEmptyMap.correctValue == selectedKey.value;
+    bool isCorrect = firstEmptyAnswerKey.correctValue == selectedPadKey.value;
 
     if (isCorrect) {
       increaseQuestionPrice();
@@ -52,89 +49,82 @@ class Question {
     questionPrice = questionPrice! + 0.01;
   }
 
-   void removeKeyPad(lastKeyPadIndex) {
+  void removePadKey({required lastPadKeyIndex}) {
     // Avoid null element
-    if(isAnswerFull()) return;
+    if (isAnswerMapFull()) return;
 
-    int findFirstIndexOfMapWithEmptyValue = userAnswerMap!.indexWhere((map) => map.currentValue == null);
-
-    if (findFirstIndexOfMapWithEmptyValue >= 0) {
-      userAnswerMap![findFirstIndexOfMapWithEmptyValue].currentIndex = lastKeyPadIndex;
-      userAnswerMap![findFirstIndexOfMapWithEmptyValue].currentValue =
-          keyPad![lastKeyPadIndex].value;
-      userAnswerMap![findFirstIndexOfMapWithEmptyValue].comingKeyPadIndex =
-          lastKeyPadIndex; // pass lastClickedKeyPad currentIndex to track coming index
-    }
-
-    keyPad!.removeAt(lastKeyPadIndex);
-
+    _insertAnswerKey(lastPadKeyIndex);
+    keyboardMap!.removeAt(lastPadKeyIndex);
   }
 
-  void  insertKeyPad( AnswerMap map) {
-    keyPad!.insert(
-      // if current keypad shorter then original length then add last index
-        map.comingKeyPadIndex! > keyPad!.length
-            ? keyPad!.length
-            : map.comingKeyPadIndex!,
-        KeyValue(
-          value: map.currentValue,
-          currentKeyPadIndex: map.comingKeyPadIndex,
+  _insertAnswerKey(lastPadKeyIndex) {
+    // Avoid null element
+    if (isAnswerMapFull()) return;
+
+    int firstEmptyAnswerKeyIndex = answerMap!.indexWhere((map) => map.currentValue == null);
+
+    var theEmptyAnswerKey = answerMap![firstEmptyAnswerKeyIndex];
+    if (firstEmptyAnswerKeyIndex >= 0) {
+      theEmptyAnswerKey.currentValue = keyboardMap![lastPadKeyIndex].value;
+      theEmptyAnswerKey.comingKeyPadIndex =
+          lastPadKeyIndex; // pass lastClickedKeyPad currentIndex to track coming index
+    }
+  }
+
+  void reInsertPadKey(AnswerKey answerKey) {
+    keyboardMap!.insert(
+        // if current keypad shorter then original length then add last index
+        answerKey.comingKeyPadIndex! > keyboardMap!.length ? keyboardMap!.length : answerKey.comingKeyPadIndex!,
+        PadKey(
+          value: answerKey.currentValue,
+          currentIndex: answerKey.comingKeyPadIndex,
           isClicked: false,
         ));
-
   }
 
-  void  clearQuestionBoard() {
-    var emptyMaps=userAnswerMap!.where((item) => item.currentValue!=null).toList();
+  void clearQuestionBoard() {
+    var emptyMaps = answerMap!.where((item) => item.currentValue != null).toList();
     for (var map in emptyMaps) {
       if (map.currentValue != map.correctValue) {
-        insertKeyPad( map);
+        reInsertPadKey(map);
         map.clearValue();
       }
     }
-
-
   }
 
-  bool isAnswerFull(){
-      bool complete = userAnswerMap!.where((puzzle) => puzzle.currentValue == null).isEmpty;
-      return isFull = complete;
-
+  bool isAnswerMapFull() {
+    bool complete = answerMap!.where((puzzle) => puzzle.currentValue == null).isEmpty;
+    return isFull = complete;
   }
-
 }
 
-class KeyValue {
+class PadKey {
   String? value;
   bool? isClicked;
+  int? currentIndex;
 
-  // int? answerIndex;
-  int? currentKeyPadIndex;
+  PadKey({this.value, this.currentIndex, this.isClicked});
 
-  KeyValue({this.value, this.currentKeyPadIndex, this.isClicked});
-
-  KeyValue clone() {
-    return KeyValue(
+  PadKey clone() {
+    return PadKey(
       value: value,
       isClicked: false,
-      currentKeyPadIndex: currentKeyPadIndex,
-
+      currentIndex: currentIndex,
     );
   }
 }
 
-class AnswerMap {
+class AnswerKey {
   String? currentValue;
-  int? currentIndex;
   int? comingKeyPadIndex;
   int? correctIndex;
   String? correctValue;
   bool hintShow;
 
-  AnswerMap({
+  AnswerKey({
     this.hintShow = false,
     this.correctValue,
-    this.currentIndex,
+    //  this.currentIndex,
     this.currentValue,
     this.correctIndex,
     this.comingKeyPadIndex,
@@ -149,15 +139,19 @@ class AnswerMap {
   }
 
   void clearValue() {
-    currentIndex = null;
+    // currentIndex = null;
     currentValue = null;
   }
 
-  bool isTrue() {
+  bool isValueMatch() {
     return currentValue == correctValue;
   }
 
   bool isEmpty() {
-    return currentIndex == null;
+    return currentValue == null;
+  }
+
+  bool isNotClickable() {
+    return isValueMatch() || currentValue == null || hintShow;
   }
 }
