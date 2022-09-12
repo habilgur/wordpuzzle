@@ -123,7 +123,7 @@ class _WordFindWidgetState extends State<WordFindWidget> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "${questionPrice}",
+                      "${currentQues.questionPrice}",
                       textScaleFactor: 3,
                     ),
                   ],
@@ -159,10 +159,10 @@ class _WordFindWidgetState extends State<WordFindWidget> {
                           // later change color based condition
                           Color? color;
 
-                          if (userAnswer.currentValue == userAnswer.correctValue) {
-                            color = Colors.green;
-                          } else if (userAnswer.currentValue == null) {
+                          if (userAnswer.isEmpty()) {
                             color = Colors.white;
+                          } else if (userAnswer.isTrue()) {
+                            color = Colors.green;
                           } else {
                             color = Colors.red;
                           }
@@ -182,8 +182,8 @@ class _WordFindWidgetState extends State<WordFindWidget> {
                             onTap: () {
                               if (userAnswer.currentValue == null || userAnswer.hintShow || currentQues.isDone) return;
 
-                              currentQues.isFull = false;
-                              currentQues = QuestionServices().insertKeyPad(currentQues, userAnswer);
+                              //currentQues.isFull = false;
+                              currentQues.insertKeyPad( userAnswer);
                               userAnswer.clearValue();
 
                               setState(() {});
@@ -223,13 +223,16 @@ class _WordFindWidgetState extends State<WordFindWidget> {
                             spacing: 5,
                             alignment: WrapAlignment.center,
                             children: List.generate(currentQues.keyPad!.length, (index) {
+                              var selectedKeyPad = currentQues.keyPad![index];
                               Color color = const Color(0xff7EE7FD);
                               return InkWell(
                                 onTap: () async {
-                                  currentQues = QuestionServices().removeKeyPad(currentQues, index);
 
+                                  currentQues.setSelectedKeyPrize(selectedKeyPad);
 
-                                  if (currentQues.fieldCompleteCorrect()) {
+                                  currentQues.removeKeyPad(index);
+
+                                  if (currentQues.isAnswerCorrect()) {
                                     currentQues.isDone = true;
 
                                     setState(() {});
@@ -271,7 +274,7 @@ class _WordFindWidgetState extends State<WordFindWidget> {
                         iconSize: 30,
                         color: Colors.white,
                         onPressed: () {
-                          currentQues = QuestionServices().clearQuestionBoard(currentQues);
+                          currentQues.clearQuestionBoard();
                           setState(() {});
                         },
                       ),
@@ -337,13 +340,13 @@ class _WordFindWidgetState extends State<WordFindWidget> {
       var userAnswer = mapWithNoHints[indexHint];
       userAnswer.currentValue = userAnswer.correctValue;
       userAnswer.hintShow = true;
-      userAnswer.currentIndex = userAnswer.correctIndex;
+     // userAnswer.currentIndex = userAnswer.correctIndex;
 
       // remove hint from keypad ( avoid multiple removing find first occurrence then clear)
       var theValue = currentQues.keyPad!.where((element) => element.value == userAnswer.correctValue).first;
       currentQues.keyPad!.remove(theValue);
 
-      if (currentQues.fieldCompleteCorrect()) {
+      if (currentQues.isAnswerCorrect()) {
         currentQues.isDone = true;
 
         setState(() {});
