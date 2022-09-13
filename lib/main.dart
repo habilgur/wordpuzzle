@@ -6,7 +6,11 @@ import 'Models/player.dart';
 import 'Models/question.dart';
 import 'Utils/constant_data.dart';
 
-//todo limit hint
+//todo  watch rewarded admob win +2 hintRight. Limit it max 2 time per game
+//todo skip butonu yap 3 adet skip hakkı olsun bunun için her skipte bir soru ekle questionliste
+
+// todo günlük oynama sınırı 5 yap eğer oynamak isterse ödüllü izlet ancak max 3 kez izleyebilisin.
+
 void main() {
   runApp(const MyApp());
 }
@@ -34,14 +38,13 @@ class _WordFindState extends State<WordFind> {
   // make list question for puzzle
   // make class 1st
   late List<Question> listQuestions;
-  late  Player thePlayer;
+  late Player thePlayer;
 
   @override
   void initState() {
     super.initState();
     listQuestions = QuestionServices().creteQuestionList();
     thePlayer = Player(name: "test");
-
   }
 
   @override
@@ -91,7 +94,7 @@ class WordFindWidget extends StatefulWidget {
   final List<Question> listQuestions;
   final Player thePlayer;
 
-  const WordFindWidget(this.size, this.listQuestions,this.thePlayer, {required Key key}) : super(key: key);
+  const WordFindWidget(this.size, this.listQuestions, this.thePlayer, {required Key key}) : super(key: key);
 
   @override
   State<WordFindWidget> createState() => _WordFindWidgetState();
@@ -102,7 +105,7 @@ class _WordFindWidgetState extends State<WordFindWidget> {
   late List<Question> listQuestions;
   late Player thePlayer;
   int indexQues = 0; // current index question
-  int hintCount = 0;
+  //int hintCount = 0;
   //double questionPrice = 1;
 
   @override
@@ -110,25 +113,26 @@ class _WordFindWidgetState extends State<WordFindWidget> {
     super.initState();
     size = widget.size;
     listQuestions = widget.listQuestions;
-    thePlayer=widget.thePlayer;
+    thePlayer = widget.thePlayer;
   }
 
   @override
   Widget build(BuildContext context) {
     Question currentQues = listQuestions[indexQues];
-   var screenSize=MediaQuery.of(context).size;
+    var screenSize = MediaQuery.of(context).size;
     return SizedBox(
       width: double.maxFinite,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(mainAxisAlignment: MainAxisAlignment.spaceAround,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: const [
-            Text("KeyP:$keyPrize"),
-            Text("CCP:$correctClickPrice"),
-            Text("WCP:$wrongClickPrice"),
-            Text("HCP:$hintClickPrice"),
-          ],),
+              Text("KeyP:$keyPrize"),
+              Text("CCP:$correctClickPrice"),
+              Text("WCP:$wrongClickPrice"),
+            ],
+          ),
           Expanded(
               flex: 3,
               child: Container(
@@ -168,7 +172,6 @@ class _WordFindWidgetState extends State<WordFindWidget> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           mainAxisSize: MainAxisSize.min,
-
                           children: currentQues.answerMap!.map((answerKeyItem) {
                             // later change color based condition
                             Color? color;
@@ -183,7 +186,7 @@ class _WordFindWidgetState extends State<WordFindWidget> {
 
                             return InkWell(
                               onTap: () {
-                              if(answerKeyItem.isNotClickable())return;
+                                if (answerKeyItem.isNotClickable()) return;
 
                                 currentQues.reInsertPadKey(answerKeyItem);
                                 answerKeyItem.clearValue();
@@ -191,15 +194,10 @@ class _WordFindWidgetState extends State<WordFindWidget> {
                                 setState(() {});
                               },
                               child: Container(
-
-                                width: screenSize.width*1/screenDivideNum,
-
-                                height:screenSize.width * 0.11,
-
-                                decoration: BoxDecoration(
-                                  color: color,
-                                    border: Border.all(color: Colors.blueAccent,width: 2)
-                                ),
+                                width: screenSize.width * 1 / screenDivideNum,
+                                height: screenSize.width * 0.11,
+                                decoration:
+                                    BoxDecoration(color: color, border: Border.all(color: Colors.blueAccent, width: 2)),
                                 alignment: Alignment.center,
                                 child: Text(
                                   (answerKeyItem.currentValue ?? ''),
@@ -234,7 +232,7 @@ class _WordFindWidgetState extends State<WordFindWidget> {
                               return InkWell(
                                 onTap: () async {
                                   currentQues.updateQuestionPrize(selectedKeyPad);
-                                  currentQues.removePadKey(lastPadKeyIndex:index);
+                                  currentQues.removePadKey(lastPadKeyIndex: index);
 
                                   if (currentQues.isAnswerCorrect()) {
                                     currentQues.isDone = true;
@@ -244,13 +242,12 @@ class _WordFindWidgetState extends State<WordFindWidget> {
 
                                     await Future.delayed(const Duration(seconds: 1));
                                     nextQuestion();
-
                                   }
                                   setState(() {});
                                 },
                                 child: Container(
                                   height: MediaQuery.of(context).size.width * 0.14,
-                                  width: MediaQuery.of(context).size.width *0.13,
+                                  width: MediaQuery.of(context).size.width * 0.13,
                                   decoration: BoxDecoration(
                                     color: color,
                                     borderRadius: BorderRadius.circular(30),
@@ -283,14 +280,22 @@ class _WordFindWidgetState extends State<WordFindWidget> {
                         setState(() {});
                       },
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.favorite),
-                      iconSize: 30,
-                      color: hintCount > 1 ? Colors.grey : Colors.white,
-                      onPressed: () {
-                        generateHint();
-                        setState(() {});
-                      },
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.favorite),
+                          iconSize: 30,
+                          color: thePlayer.hintRight == 0 ? Colors.grey : Colors.white,
+                          onPressed: () {
+                            generateHint();
+                            setState(() {});
+                          },
+                        ),
+                        Text(
+                          "X ${thePlayer.hintRight}",
+                          style: const TextStyle(color: Colors.white),
+                        )
+                      ],
                     ),
                     IconButton(
                       icon: const Icon(Icons.refresh),
@@ -318,15 +323,13 @@ class _WordFindWidgetState extends State<WordFindWidget> {
 
   void generatePuzzle() {
     listQuestions = QuestionServices().creteQuestionList();
-    hintCount = 0; //number hint per ques we hit
-    indexQues=0;
+    indexQues = 0;
     setState(() {});
   }
 
   void nextQuestion() {
     if (listQuestions.length - 1 > indexQues) {
       indexQues++;
-
     }
   }
 
@@ -334,17 +337,18 @@ class _WordFindWidgetState extends State<WordFindWidget> {
   generateHint() async {
     Question currentQues = listQuestions[indexQues];
 
-    if (hintClickPrice > currentQues.questionPrice!) return; // Avoid Question Price below zero.
+    // if (hintClickPrice > currentQues.questionPrice!) return; // Avoid Question Price below zero.
+    if (thePlayer.hintRight == 0) return;
+    thePlayer.reduceHintRightNum();
 
     // Clear board and fill keyPad again to avoid empty search for already removed items from keyPad..
     currentQues.clearQuestionBoard();
 
-    List<AnswerKey> mapWithNoHints =
-        currentQues.answerMap!.where((item) => !item.hintShow && item.isEmpty()).toList();
+    List<AnswerKey> mapWithNoHints = currentQues.answerMap!.where((item) => !item.hintShow && item.isEmpty()).toList();
 
     if (mapWithNoHints.isNotEmpty) {
-      currentQues.reduceQuestionPrice(deduct: hintClickPrice);
-      hintCount++;
+      //currentQues.reduceQuestionPrice(deduct: hintClickPrice);
+      // hintCount++;
       int indexHint = Random().nextInt(mapWithNoHints.length);
 
       var userAnswer = mapWithNoHints[indexHint];

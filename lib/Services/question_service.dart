@@ -4,8 +4,6 @@ import 'package:wordpuzzle/Utils/constant_data.dart';
 import 'package:wordpuzzle/WordBank/turkish_list.dart';
 import '../WordBank/alphabet.dart';
 
-
-
 class QuestionServices {
   List<Question> creteQuestionList() {
     List<Question> quesList = [];
@@ -74,9 +72,9 @@ class QuestionServices {
   }
 
   void createHintThenRemoveFromShuffledKeys(List<AnswerKey> userAnswerMap, List<PadKey> shuffledPadKeys) {
-    int rand1 = 0, rand2 = 0, rand3 = 0;
+    int rand1 = 0, rand2 = 0;
     List<int> rndList = [];
-    while (rand1 == rand2 ) {
+    while (rand1 == rand2) {
       rand1 = Random().nextInt(userAnswerMap.length);
       rand2 = Random().nextInt(userAnswerMap.length);
       if (rand1 != rand2) {
