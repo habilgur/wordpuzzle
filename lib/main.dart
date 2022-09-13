@@ -2,7 +2,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:wordpuzzle/Services/question_service.dart';
 
+import 'Models/player.dart';
 import 'Models/question.dart';
+import 'Utils/constant_data.dart';
 
 //todo limit hint
 void main() {
@@ -32,11 +34,14 @@ class _WordFindState extends State<WordFind> {
   // make list question for puzzle
   // make class 1st
   late List<Question> listQuestions;
+  late  Player thePlayer;
 
   @override
   void initState() {
     super.initState();
     listQuestions = QuestionServices().creteQuestionList();
+    thePlayer = Player(name: "test");
+
   }
 
   @override
@@ -57,6 +62,7 @@ class _WordFindState extends State<WordFind> {
                       child: WordFindWidget(
                         constraints.biggest,
                         listQuestions,
+                        thePlayer,
                         key: globalKey,
                       ),
                     );
@@ -83,8 +89,9 @@ class _WordFindState extends State<WordFind> {
 class WordFindWidget extends StatefulWidget {
   final Size size;
   final List<Question> listQuestions;
+  final Player thePlayer;
 
-  const WordFindWidget(this.size, this.listQuestions, {required Key key}) : super(key: key);
+  const WordFindWidget(this.size, this.listQuestions,this.thePlayer, {required Key key}) : super(key: key);
 
   @override
   State<WordFindWidget> createState() => _WordFindWidgetState();
@@ -93,16 +100,17 @@ class WordFindWidget extends StatefulWidget {
 class _WordFindWidgetState extends State<WordFindWidget> {
   late Size size;
   late List<Question> listQuestions;
+  late Player thePlayer;
   int indexQues = 0; // current index question
   int hintCount = 0;
-  double questionPrice = 1;
+  //double questionPrice = 1;
 
   @override
   void initState() {
     super.initState();
     size = widget.size;
     listQuestions = widget.listQuestions;
-    //generatePuzzle();
+    thePlayer=widget.thePlayer;
   }
 
   @override
@@ -114,6 +122,13 @@ class _WordFindWidgetState extends State<WordFindWidget> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: const [
+            Text("KeyP:$keyPrize"),
+            Text("CCP:$correctClickPrice"),
+            Text("WCP:$wrongClickPrice"),
+            Text("HCP:$hintClickPrice"),
+          ],),
           Expanded(
               flex: 3,
               child: Container(
@@ -125,7 +140,13 @@ class _WordFindWidgetState extends State<WordFindWidget> {
                   children: [
                     Center(
                       child: Text(
-                        "${currentQues.questionPrice!.toStringAsFixed(2)} ₺",
+                        "${thePlayer.point.toStringAsFixed(3)} ₺",
+                        textScaleFactor: 3,
+                      ),
+                    ),
+                    Center(
+                      child: Text(
+                        "${currentQues.questionPrice!.toStringAsFixed(3)} ₺",
                         textScaleFactor: 3,
                       ),
                     ),
@@ -162,7 +183,6 @@ class _WordFindWidgetState extends State<WordFindWidget> {
 
                             return InkWell(
                               onTap: () {
-                                //todo isClickable function
                               if(answerKeyItem.isNotClickable())return;
 
                                 currentQues.reInsertPadKey(answerKeyItem);
@@ -171,8 +191,8 @@ class _WordFindWidgetState extends State<WordFindWidget> {
                                 setState(() {});
                               },
                               child: Container(
-                                //todo make 12 dynamic
-                                width: screenSize.width*1/12,
+
+                                width: screenSize.width*1/screenDivideNum,
 
                                 height:screenSize.width * 0.11,
 
@@ -213,16 +233,18 @@ class _WordFindWidgetState extends State<WordFindWidget> {
                               Color color = const Color(0xff7EE7FD);
                               return InkWell(
                                 onTap: () async {
-                                  currentQues.setSelectedPadKeyPrize(selectedKeyPad);
+                                  currentQues.updateQuestionPrize(selectedKeyPad);
                                   currentQues.removePadKey(lastPadKeyIndex:index);
 
                                   if (currentQues.isAnswerCorrect()) {
                                     currentQues.isDone = true;
+                                    thePlayer.addQuestionPrize(currentQues.questionPrice!);
 
                                     setState(() {});
 
                                     await Future.delayed(const Duration(seconds: 1));
                                     nextQuestion();
+
                                   }
                                   setState(() {});
                                 },
@@ -304,14 +326,16 @@ class _WordFindWidgetState extends State<WordFindWidget> {
   void nextQuestion() {
     if (listQuestions.length - 1 > indexQues) {
       indexQues++;
+
     }
   }
 
   //todo hintCount dynamic
   generateHint() async {
-    if (hintCount > 50) return;
-
     Question currentQues = listQuestions[indexQues];
+
+    if (hintClickPrice > currentQues.questionPrice!) return; // Avoid Question Price below zero.
+
     // Clear board and fill keyPad again to avoid empty search for already removed items from keyPad..
     currentQues.clearQuestionBoard();
 
@@ -319,6 +343,7 @@ class _WordFindWidgetState extends State<WordFindWidget> {
         currentQues.answerMap!.where((item) => !item.hintShow && item.isEmpty()).toList();
 
     if (mapWithNoHints.isNotEmpty) {
+      currentQues.reduceQuestionPrice(deduct: hintClickPrice);
       hintCount++;
       int indexHint = Random().nextInt(mapWithNoHints.length);
 
@@ -332,6 +357,7 @@ class _WordFindWidgetState extends State<WordFindWidget> {
 
       if (currentQues.isAnswerCorrect()) {
         currentQues.isDone = true;
+        thePlayer.addQuestionPrize(currentQues.questionPrice!);
 
         setState(() {});
 

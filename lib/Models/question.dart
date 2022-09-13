@@ -1,3 +1,5 @@
+import '../Utils/constant_data.dart';
+
 class Question {
   String? question;
   double? questionPrice = 0;
@@ -13,20 +15,15 @@ class Question {
     this.keyboardMap,
   });
 
-  // void setWordFindChar(List<AnswerKey> puzzles) => puzzles = puzzles;
-
-  // void setIsDone() => isDone = true;
-
   bool isAnswerCorrect() {
     if (!isAnswerMapFull()) return false;
 
     String answeredString = answerMap!.map((m) => m.currentValue).join("");
 
-    // if same string, answer is correct..yeay
     return answeredString == question;
   }
 
-  void setSelectedPadKeyPrize(PadKey selectedPadKey) {
+  void updateQuestionPrize(PadKey selectedPadKey) {
     // Avoid range Error Index
     if (isAnswerMapFull()) return;
 
@@ -41,12 +38,14 @@ class Question {
     }
   }
 
-  void reduceQuestionPrice() {
-    questionPrice = questionPrice! - 0.01;
+  ///Deduct ClickPrice from QuestionPrize as default. Option: HintPrize
+  void reduceQuestionPrice({double deduct = wrongClickPrice}) {
+    //if (questionPrice! -deduct < -0.00001) return; // Avoid Question Price below zero.
+    questionPrice = questionPrice! - deduct;
   }
 
   void increaseQuestionPrice() {
-    questionPrice = questionPrice! + 0.01;
+    questionPrice = questionPrice! + correctClickPrice;
   }
 
   void removePadKey({required lastPadKeyIndex}) {
@@ -124,7 +123,6 @@ class AnswerKey {
   AnswerKey({
     this.hintShow = false,
     this.correctValue,
-    //  this.currentIndex,
     this.currentValue,
     this.correctIndex,
     this.comingKeyPadIndex,
@@ -139,7 +137,6 @@ class AnswerKey {
   }
 
   void clearValue() {
-    // currentIndex = null;
     currentValue = null;
   }
 
