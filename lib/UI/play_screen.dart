@@ -1,7 +1,5 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
-
 import '../Models/player.dart';
 import '../Models/question.dart';
 import '../Services/question_service.dart';
@@ -52,19 +50,19 @@ class _PlayScreenState extends State<PlayScreen> {
                 width: double.maxFinite,
                 color: Colors.green,
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Center(
                       child: Text(
-                        "${thePlayer.point.toStringAsFixed(3)} ₺",
+                        "${thePlayer.point.toStringAsFixed(2)} ₺",
                         textScaleFactor: 3,
                       ),
                     ),
                     Center(
                       child: Text(
-                        "${currentQues.questionPrice!.toStringAsFixed(3)} ₺",
-                        textScaleFactor: 3,
+                        "${currentQues.questionPrice!.toStringAsFixed(2)} ₺",
+                        textScaleFactor: 2,
                       ),
                     ),
                   ],
@@ -252,7 +250,6 @@ class _PlayScreenState extends State<PlayScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
-
                     onPressed: () {
                       restartGame();
                     },

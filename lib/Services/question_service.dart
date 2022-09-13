@@ -30,7 +30,7 @@ class QuestionServices {
       quesList.add(
         Question(
           question: question,
-          questionPrice: question.length * questionTilePrize,
+          questionPrice: question.length < 6 ? correctClickPrice : correctClickPrice * 2,
           keyboardMap: shuffledPadKeys,
           answerMap: userAnswerMap,
         ),
@@ -43,36 +43,34 @@ class QuestionServices {
   Question createAQuestion() {
     var theList = turkishWords.where((item) => item.length < 12).toList();
 
+    var question = theList[Random().nextInt(theList.length)].toLowerCase();
 
-      var question = theList[Random().nextInt(theList.length)].toLowerCase();
+    // Create User Answer Map
+    var userAnswerMap = List.generate(question.split("").length, (index) {
+      return AnswerKey(correctValue: question.split("")[index], correctIndex: index);
+    });
 
-      // Create User Answer Map
-      var userAnswerMap = List.generate(question.split("").length, (index) {
-        return AnswerKey(correctValue: question.split("")[index], correctIndex: index);
-      });
+    // Lets create Random Keys
+    var questionWithRandomKeys = createRandomKeys(question);
 
-      // Lets create Random Keys
-      var questionWithRandomKeys = createRandomKeys(question);
+    // Create Shuffled Chars
+    List<PadKey> shuffledPadKeys = createShufflePadKeys(questionWithRandomKeys);
 
-      // Create Shuffled Chars
-      List<PadKey> shuffledPadKeys = createShufflePadKeys(questionWithRandomKeys);
+    // Set Hinted AnswerMap for Game Start
+    createHintThenRemoveFromShuffledKeys(userAnswerMap, shuffledPadKeys);
 
-      // Set Hinted AnswerMap for Game Start
-      createHintThenRemoveFromShuffledKeys(userAnswerMap, shuffledPadKeys);
-
-      // Generate Question
-      return Question(
-        question: question,
-        questionPrice: question.length * questionTilePrize,
-        keyboardMap: shuffledPadKeys,
-        answerMap: userAnswerMap,
-      );
-
+    // Generate Question
+    return Question(
+      question: question,
+      questionPrice: question.length * prizePerQuestionTile,
+      keyboardMap: shuffledPadKeys,
+      answerMap: userAnswerMap,
+    );
   }
 
   List<String> createRandomKeys(String question) {
     List<String> randomList = [];
-    var randomCharNum = question.length < 5 ? 1 : 2;
+    var randomCharNum = question.length < 5 ? 2 : 3;
 
     for (int i = 0; i < randomCharNum; i++) {
       var randomKey = turkishAlphabet[Random().nextInt(turkishAlphabet.length)].toLowerCase();

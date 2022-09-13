@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-
 import 'Models/player.dart';
 import 'Models/question.dart';
-import 'Services/question_service.dart';
 import 'UI/play_screen.dart';
-import 'main.dart';
+
 
 class GameInit extends StatefulWidget {
   const GameInit({super.key});
@@ -14,11 +12,6 @@ class GameInit extends StatefulWidget {
 }
 
 class _GameInitState extends State<GameInit> {
-  // sent size to our widget
-  //GlobalKey<_WordFindWidgetState> globalKey = GlobalKey();
-
-  // make list question for puzzle
-  // make class 1st
   late List<Question> listQuestions;
   late Player thePlayer;
 
@@ -42,8 +35,6 @@ class _GameInitState extends State<GameInit> {
                   builder: (context, constraints) {
                     return Container(
                       color: Colors.blue,
-                      // lets make our word find widget
-                      // sent list to our widget
                       child: PlayScreen(thePlayer),
                     );
                   },
@@ -55,6 +46,4 @@ class _GameInitState extends State<GameInit> {
       ),
     );
   }
-
-  void restartGame() {}
 }
