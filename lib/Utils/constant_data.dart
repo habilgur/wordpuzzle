@@ -6,3 +6,5 @@ const double correctClickPrice = keyPrize;
 const double wrongClickPrice = keyPrize * quesPointMultiply; // wrongClickPrice==questionTilePrize must be equal
 const double questionTilePrize =0;// keyPrize / quesPointMultiply; // wrongClickPrice==questionTilePrize must be equal
 const int playerHintClickLimit = 2;
+const int playerSkipLimit = 2;
+const int gameQuestionLength =10;

@@ -4,6 +4,7 @@ class Player {
   String name;
   double point = 0;
   int hintRight = playerHintClickLimit;
+  int skipRight = playerSkipLimit;
 
   Player({required this.name});
 
@@ -12,6 +13,7 @@ class Player {
   hintRightNum() => hintRight;
 
   reduceHintRightNum() => hintRight--;
+  reduceSkipRightNum() => skipRight--;
 
   // Ads (+) prize to player point
   addQuestionPrize(double prize) {

@@ -9,8 +9,7 @@ class QuestionServices {
     List<Question> quesList = [];
     var theList = turkishWords.where((item) => item.length < 12).toList();
 
-    //todo make 10 dynamic
-    for (int i = 0; i <= 10; i++) {
+    for (int i = 0; i <= gameQuestionLength; i++) {
       var question = theList[Random().nextInt(theList.length)].toLowerCase();
 
       // Create User Answer Map
@@ -39,6 +38,36 @@ class QuestionServices {
     }
 
     return quesList;
+  }
+
+  Question createAQuestion() {
+    var theList = turkishWords.where((item) => item.length < 12).toList();
+
+
+      var question = theList[Random().nextInt(theList.length)].toLowerCase();
+
+      // Create User Answer Map
+      var userAnswerMap = List.generate(question.split("").length, (index) {
+        return AnswerKey(correctValue: question.split("")[index], correctIndex: index);
+      });
+
+      // Lets create Random Keys
+      var questionWithRandomKeys = createRandomKeys(question);
+
+      // Create Shuffled Chars
+      List<PadKey> shuffledPadKeys = createShufflePadKeys(questionWithRandomKeys);
+
+      // Set Hinted AnswerMap for Game Start
+      createHintThenRemoveFromShuffledKeys(userAnswerMap, shuffledPadKeys);
+
+      // Generate Question
+      return Question(
+        question: question,
+        questionPrice: question.length * questionTilePrize,
+        keyboardMap: shuffledPadKeys,
+        answerMap: userAnswerMap,
+      );
+
   }
 
   List<String> createRandomKeys(String question) {
