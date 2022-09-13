@@ -4,7 +4,7 @@ import 'package:wordpuzzle/Utils/constant_data.dart';
 import 'package:wordpuzzle/WordBank/turkish_list.dart';
 import '../WordBank/alphabet.dart';
 
-PadKey lastClickedKeyPad = PadKey();
+
 
 class QuestionServices {
   List<Question> creteQuestionList() {
@@ -13,21 +13,23 @@ class QuestionServices {
 
     //todo make 10 dynamic
     for (int i = 0; i <= 10; i++) {
-      var question = theList[Random().nextInt(theList.length)].toLowerCase(); // todo check unique
+      var question = theList[Random().nextInt(theList.length)].toLowerCase();
 
       // Create User Answer Map
       var userAnswerMap = List.generate(question.split("").length, (index) {
-        return AnswerKey(
-            correctValue: question.split("")[index], correctIndex: index);
+        return AnswerKey(correctValue: question.split("")[index], correctIndex: index);
       });
 
-      // change current value to correct value and hintShow true in userAnswerMap randomly according question length
+      // Lets create Random Keys
+      var questionWithRandomKeys = createRandomKeys(question);
 
-      // shuffle Keys with out hint true
+      // Create Shuffled Chars
+      List<PadKey> shuffledPadKeys = createShufflePadKeys(questionWithRandomKeys);
 
-      // create Shuffled Chars
-      List<PadKey> shuffledPadKeys = createShufflePadKeys(question);
+      // Set Hinted AnswerMap for Game Start
+      createHintThenRemoveFromShuffledKeys(userAnswerMap, shuffledPadKeys);
 
+      // Generate Question List
       quesList.add(
         Question(
           question: question,
@@ -41,16 +43,20 @@ class QuestionServices {
     return quesList;
   }
 
-  List<PadKey> createShufflePadKeys(String question) {
-    var randomList = [];
-    var randomCharNum = question.length < 7 ? 1 : 2;
+  List<String> createRandomKeys(String question) {
+    List<String> randomList = [];
+    var randomCharNum = question.length < 5 ? 1 : 2;
+
     for (int i = 0; i < randomCharNum; i++) {
       var randomKey = turkishAlphabet[Random().nextInt(turkishAlphabet.length)].toLowerCase();
       randomList.add(randomKey);
     }
 
-    var questionWithRandomKeys = [question.split(""), randomList].expand((x) => x).toList();
+    List<String> questionWithRandomKeys = [question.split(""), randomList].expand((x) => x).toList();
+    return questionWithRandomKeys;
+  }
 
+  List<PadKey> createShufflePadKeys(List<String> questionWithRandomKeys) {
     List<PadKey> shuffledCharsKeyPad = [];
     for (int i = 0; i < questionWithRandomKeys.length; i++) {
       shuffledCharsKeyPad.add(
@@ -65,6 +71,33 @@ class QuestionServices {
     shuffledCharsKeyPad.shuffle();
 
     return shuffledCharsKeyPad;
+  }
+
+  void createHintThenRemoveFromShuffledKeys(List<AnswerKey> userAnswerMap, List<PadKey> shuffledPadKeys) {
+    int rand1 = 0, rand2 = 0, rand3 = 0;
+    List<int> rndList = [];
+    while (rand1 == rand2 ) {
+      rand1 = Random().nextInt(userAnswerMap.length);
+      rand2 = Random().nextInt(userAnswerMap.length);
+      if (rand1 != rand2) {
+        rndList.add(rand1);
+        rndList.add(rand2);
+      }
+    }
+
+    // Set how much hint display via question lenght
+    userAnswerMap.length < 6 ? rndList.remove(rndList.last) : rndList;
+
+    // change current value to correct value and hintShow true in userAnswerMap randomly according question length
+    for (int index in rndList) {
+      var answerKeyWithHint = userAnswerMap[index];
+      answerKeyWithHint.hintShow = true;
+      answerKeyWithHint.currentValue = answerKeyWithHint.correctValue;
+
+      // Remove hinted value from shuffle Keys
+      var removeKeyPadWithHint = shuffledPadKeys.where((k) => k.value == answerKeyWithHint.currentValue).first;
+      shuffledPadKeys.remove(removeKeyPadWithHint);
+    }
   }
 
   reShuffleQuestionKeyPad({required Question currentQuestion}) {

@@ -16,7 +16,7 @@ class Player {
 
 //todo her soruda baştan ipucu ver yeşil  - randomKEy 2 yap
 
-//todo eğer hint tık uzunluğa göre almak isterse reklamla ver ama her oyunda örn max 5 ile sınırla
+//todo her oyun için Ödüllü reklam ile x2 Hint ver
 
 //todo skip butonu yap 3 adet skip hakkı olsun bunun için her skipte bir soru ekle questionliste
 
