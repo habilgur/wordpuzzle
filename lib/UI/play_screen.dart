@@ -4,6 +4,7 @@ import '../Models/player.dart';
 import '../Models/question.dart';
 import '../Services/question_service.dart';
 import '../Utils/constant_data.dart';
+import 'finish_screen.dart';
 
 class PlayScreen extends StatefulWidget {
   final Player thePlayer;
@@ -38,10 +39,10 @@ class _PlayScreenState extends State<PlayScreen> {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: const [
-              Text("KeyP:$keyPrize"),
-              Text("CCP:$correctClickPrice"),
-              Text("WCP:$wrongClickPrice"),
+            children: [
+              Text("Ques:${indexQues + 1} / ${listQuestions.length}"),
+              const Text("CCP:$correctClickPrice"),
+              const Text("WCP:$wrongClickPrice"),
             ],
           ),
           Expanded(
@@ -268,10 +269,8 @@ class _PlayScreenState extends State<PlayScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
-                    onPressed: () {
-                      restartGame();
-                    },
-                    child: const Text("reload"),
+                    onPressed: () {},
+                    child: const Text("Banner Area"),
                   ),
                 ],
               ),
@@ -291,6 +290,8 @@ class _PlayScreenState extends State<PlayScreen> {
   void nextQuestion() {
     if (listQuestions.length - 1 > indexQues) {
       indexQues++;
+    } else {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const FinishScreen()));
     }
   }
 
@@ -301,7 +302,7 @@ class _PlayScreenState extends State<PlayScreen> {
     thePlayer.reduceHintRightNum();
 
     // Clear board and fill keyPad again to avoid empty search for already removed items from keyPad..
-    currentQues.clearAnswerKeyBoard();
+    currentQues.clearBoards();
 
     List<AnswerKey> mapWithNoHints = currentQues.answerMap!.where((item) => !item.hintShow && item.isEmpty()).toList();
 

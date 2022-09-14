@@ -7,4 +7,4 @@ const double wrongClickPrice = keyPrize * quesPointMultiply; // wrongClickPrice=
 const double prizePerQuestionTile =0.002;
 const int playerHintClickLimit = 2;
 const int playerSkipLimit = 2;
-const int gameQuestionLength =10;
+const int gameQuestionLength =20;
