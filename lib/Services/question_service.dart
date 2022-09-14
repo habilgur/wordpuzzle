@@ -87,7 +87,6 @@ class QuestionServices {
       shuffledCharsKeyPad.add(
         PadKey(
           value: questionWithRandomKeys[i],
-          currentIndex: i,
           isClicked: false,
         ).clone(),
       );
@@ -129,7 +128,6 @@ class QuestionServices {
       // Remove hinted value from shuffle Keys
       var removeKeyPadWithHint = shuffledPadKeys.where((k) => k.value == answerKeyWithHint.currentValue).first;
       shuffledPadKeys.remove(removeKeyPadWithHint);
-
     }
   }
 

@@ -106,8 +106,7 @@ class _PlayScreenState extends State<PlayScreen> {
                               onTap: () {
                                 if (answerKeyItem.isNotClickable()) return;
 
-                                currentQues.reInsertPadKey(answerKeyItem);
-                                answerKeyItem.clearValue();
+                                currentQues.answerKeyClickAction(answerKeyItem);
 
                                 setState(() {});
                               },
@@ -127,7 +126,6 @@ class _PlayScreenState extends State<PlayScreen> {
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                   ),
-
                                 ),
                               ),
                             );
@@ -157,7 +155,7 @@ class _PlayScreenState extends State<PlayScreen> {
                                   if (!selectedKeyPad.isKeyClicked()) {
                                     currentQues.updateQuestionPrize(selectedKeyPad);
 
-                                    currentQues.makePadKeySelected(lastPadKeyIndex: index);
+                                    currentQues.padKeyClickAction(selectedPadKey: selectedKeyPad);
 
                                     if (currentQues.isAnswerCorrect()) {
                                       currentQues.isDone = true;
@@ -167,7 +165,8 @@ class _PlayScreenState extends State<PlayScreen> {
                                       nextQuestion();
                                     }
                                   } else if (selectedKeyPad.isKeyClicked() && !selectedKeyPad.isKeyMatched()) {
-                                    currentQues.clearQuestionBoard();
+                                    selectedKeyPad.toggleClickStatus();
+                                    currentQues.clearBoards();
                                   }
 
                                   setState(() {});
@@ -206,7 +205,7 @@ class _PlayScreenState extends State<PlayScreen> {
                       iconSize: 30,
                       color: Colors.white,
                       onPressed: () {
-                        currentQues.clearQuestionBoard();
+                        currentQues.clearBoards();
                         setState(() {});
                       },
                     ),
@@ -302,7 +301,7 @@ class _PlayScreenState extends State<PlayScreen> {
     thePlayer.reduceHintRightNum();
 
     // Clear board and fill keyPad again to avoid empty search for already removed items from keyPad..
-    currentQues.clearQuestionBoard();
+    currentQues.clearAnswerKeyBoard();
 
     List<AnswerKey> mapWithNoHints = currentQues.answerMap!.where((item) => !item.hintShow && item.isEmpty()).toList();
 
