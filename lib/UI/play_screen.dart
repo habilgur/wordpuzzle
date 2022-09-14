@@ -98,6 +98,7 @@ class _PlayScreenState extends State<PlayScreen> {
 
                             return InkWell(
                               onDoubleTap: () {
+                                // Make Key selectable
                                 if (answerKeyItem.isNotClickable(isDoubleClicked: true)) return;
                                 answerKeyItem.toggleDoubleOnTap();
                                 setState(() {});
@@ -113,16 +114,20 @@ class _PlayScreenState extends State<PlayScreen> {
                               child: Container(
                                 width: screenSize.width * 1 / screenDivideNum,
                                 height: screenSize.width * 0.11,
-                                decoration:
-                                    BoxDecoration(color: color, border: Border.all(color: Colors.blueAccent, width: 2)),
                                 alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                    color: color,
+                                    border: Border.all(
+                                      color: Colors.blueAccent,
+                                      width: 2,
+                                    )),
                                 child: Text(
                                   (answerKeyItem.getCurrentValue() ?? ''),
+                                  textScaleFactor: 2,
                                   style: const TextStyle(
-                                    // fontSize: Size.aspectRatio*0.1,
                                     fontWeight: FontWeight.bold,
                                   ),
-                                  textScaleFactor: 2,
+
                                 ),
                               ),
                             );
