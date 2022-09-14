@@ -84,18 +84,24 @@ class _PlayScreenState extends State<PlayScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           mainAxisSize: MainAxisSize.min,
                           children: currentQues.answerMap!.map((answerKeyItem) {
-                            // later change color based condition
                             Color? color;
 
-                            if (answerKeyItem.isEmpty()) {
-                              color = Colors.white;
-                            } else if (answerKeyItem.isValueMatch()) {
+                            if (answerKeyItem.isValueMatch()) {
                               color = Colors.green;
+                            } else if (answerKeyItem.onDoubleTapped) {
+                              color = Colors.yellow;
+                            } else if (answerKeyItem.isEmpty()) {
+                              color = Colors.white;
                             } else {
                               color = Colors.red;
                             }
 
                             return InkWell(
+                              onDoubleTap: () {
+                                if (answerKeyItem.isNotClickable(isDoubleClicked: true)) return;
+                                answerKeyItem.toggleDoubleOnTap();
+                                setState(() {});
+                              },
                               onTap: () {
                                 if (answerKeyItem.isNotClickable()) return;
 
@@ -111,7 +117,7 @@ class _PlayScreenState extends State<PlayScreen> {
                                     BoxDecoration(color: color, border: Border.all(color: Colors.blueAccent, width: 2)),
                                 alignment: Alignment.center,
                                 child: Text(
-                                  (answerKeyItem.currentValue ?? ''),
+                                  (answerKeyItem.getCurrentValue() ?? ''),
                                   style: const TextStyle(
                                     // fontSize: Size.aspectRatio*0.1,
                                     fontWeight: FontWeight.bold,
@@ -141,33 +147,41 @@ class _PlayScreenState extends State<PlayScreen> {
                               var selectedKeyPad = currentQues.keyboardMap![index];
                               Color color = const Color(0xff7EE7FD);
                               return InkWell(
+                                onDoubleTap: () {},
                                 onTap: () async {
-                                  currentQues.updateQuestionPrize(selectedKeyPad);
-                                  currentQues.removePadKey(lastPadKeyIndex: index);
+                                  if (!selectedKeyPad.isKeyClicked()) {
+                                    currentQues.updateQuestionPrize(selectedKeyPad);
 
-                                  if (currentQues.isAnswerCorrect()) {
-                                    currentQues.isDone = true;
-                                    thePlayer.addQuestionPrize(currentQues.questionPrice!);
+                                    currentQues.makePadKeySelected(lastPadKeyIndex: index);
 
-                                    setState(() {});
+                                    if (currentQues.isAnswerCorrect()) {
+                                      currentQues.isDone = true;
+                                      thePlayer.addQuestionPrize(currentQues.questionPrice!);
 
-                                    await Future.delayed(const Duration(seconds: 1));
-                                    nextQuestion();
+                                      await Future.delayed(const Duration(seconds: 1));
+                                      nextQuestion();
+                                    }
+                                  } else if (selectedKeyPad.isKeyClicked() && !selectedKeyPad.isKeyMatched()) {
+                                    currentQues.clearQuestionBoard();
                                   }
+
                                   setState(() {});
                                 },
                                 child: Container(
                                   height: MediaQuery.of(context).size.width * 0.14,
                                   width: MediaQuery.of(context).size.width * 0.13,
                                   decoration: BoxDecoration(
-                                    color: color,
+                                    color: selectedKeyPad.isKeyMatched()
+                                        ? Colors.green
+                                        : selectedKeyPad.isKeyClicked()
+                                            ? Colors.grey
+                                            : color,
                                     borderRadius: BorderRadius.circular(30),
                                   ),
                                   alignment: Alignment.center,
                                   child: Text(
-                                    currentQues.keyboardMap![index].value!,
+                                    selectedKeyPad.getValue()!,
                                     style: const TextStyle(
-                                      // fontSize: Size.aspectRatio*0.1,
                                       fontWeight: FontWeight.bold,
                                     ),
                                     textScaleFactor: 1.8,
@@ -276,11 +290,9 @@ class _PlayScreenState extends State<PlayScreen> {
     }
   }
 
-  //todo hintCount dynamic
   generateHint() async {
     Question currentQues = listQuestions[indexQues];
 
-    // if (hintClickPrice > currentQues.questionPrice!) return; // Avoid Question Price below zero.
     if (thePlayer.hintRight == 0) return;
     thePlayer.reduceHintRightNum();
 
@@ -290,8 +302,6 @@ class _PlayScreenState extends State<PlayScreen> {
     List<AnswerKey> mapWithNoHints = currentQues.answerMap!.where((item) => !item.hintShow && item.isEmpty()).toList();
 
     if (mapWithNoHints.isNotEmpty) {
-      //currentQues.reduceQuestionPrice(deduct: hintClickPrice);
-      // hintCount++;
       int indexHint = Random().nextInt(mapWithNoHints.length);
 
       var userAnswer = mapWithNoHints[indexHint];

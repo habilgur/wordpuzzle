@@ -48,37 +48,59 @@ class Question {
     questionPrice = questionPrice! + correctClickPrice;
   }
 
-  void removePadKey({required lastPadKeyIndex}) {
+  void makePadKeySelected({required lastPadKeyIndex}) {
     // Avoid null element
     if (isAnswerMapFull()) return;
+    var indexOfInsertedAnsKey= _insertAnswerKeyAndReturnItsIndex(lastPadKeyIndex);
 
-    _insertAnswerKey(lastPadKeyIndex);
-    keyboardMap!.removeAt(lastPadKeyIndex);
+    // Colorize & control is  Key Pad matched
+    keyboardMap![lastPadKeyIndex].isClicked = true;
+    keyboardMap![lastPadKeyIndex].isMatched = answerMap![indexOfInsertedAnsKey].isValueMatch();
+
+
+    //Remove Key Pad
+    //keyboardMap!.removeAt(lastPadKeyIndex);
   }
 
-  _insertAnswerKey(lastPadKeyIndex) {
+  _insertAnswerKeyAndReturnItsIndex(lastPadKeyIndex) {
     // Avoid null element
     if (isAnswerMapFull()) return;
 
-    int firstEmptyAnswerKeyIndex = answerMap!.indexWhere((map) => map.currentValue == null);
+    var isAnyOnDoubleTapAnsKeyExist = answerMap!.any((map) => map.onDoubleTapped == true);
+    var isEmptyAnswerKeyExist = answerMap!.any((map) => map.currentValue == null);
 
-    var theEmptyAnswerKey = answerMap![firstEmptyAnswerKeyIndex];
-    if (firstEmptyAnswerKeyIndex >= 0) {
-      theEmptyAnswerKey.currentValue = keyboardMap![lastPadKeyIndex].value;
-      theEmptyAnswerKey.comingKeyPadIndex =
-          lastPadKeyIndex; // pass lastClickedKeyPad currentIndex to track coming index
+    int lookingIndexOfAnsKey = 0;
+    if (isAnyOnDoubleTapAnsKeyExist) {
+      lookingIndexOfAnsKey = answerMap!.indexWhere((map) => map.onDoubleTapped);
+    } else if (isEmptyAnswerKeyExist) {
+      lookingIndexOfAnsKey = answerMap!.indexWhere((map) => map.currentValue == null);
+    }
+
+    var theLookingAnswerKey = answerMap![lookingIndexOfAnsKey];
+    if (isAnyOnDoubleTapAnsKeyExist || isEmptyAnswerKeyExist) {
+      theLookingAnswerKey.currentValue = keyboardMap![lastPadKeyIndex].value;
+      theLookingAnswerKey.comingKeyPadIndex = lastPadKeyIndex;
+      // pass lastClickedKeyPad comingKeyPadIndex to track coming index
+
+      if (isAnyOnDoubleTapAnsKeyExist) theLookingAnswerKey.toggleDoubleOnTap(); // always lock this properties again
+      return lookingIndexOfAnsKey;
+
     }
   }
 
   void reInsertPadKey(AnswerKey answerKey) {
-    keyboardMap!.insert(
-        // if current keypad shorter then original length then add last index
-        answerKey.comingKeyPadIndex! > keyboardMap!.length ? keyboardMap!.length : answerKey.comingKeyPadIndex!,
-        PadKey(
-          value: answerKey.currentValue,
-          currentIndex: answerKey.comingKeyPadIndex,
-          isClicked: false,
-        ));
+    // Colorize Key Pad
+    keyboardMap![answerKey.comingKeyPadIndex!].isClicked = false;
+
+    // Remove Pad Keys
+    // keyboardMap!.insert(
+    //     // if current keypad shorter then original length then add last index
+    //     answerKey.comingKeyPadIndex! > keyboardMap!.length ? keyboardMap!.length : answerKey.comingKeyPadIndex!,
+    //     PadKey(
+    //       value: answerKey.currentValue,
+    //       currentIndex: answerKey.comingKeyPadIndex,
+    //       isClicked: false,
+    //     ));
   }
 
   void clearQuestionBoard() {
@@ -100,16 +122,29 @@ class Question {
 class PadKey {
   String? value;
   bool? isClicked;
+  bool? isMatched;
   int? currentIndex;
 
-  PadKey({this.value, this.currentIndex, this.isClicked});
+  PadKey({this.value, this.currentIndex, this.isClicked, this.isMatched});
 
   PadKey clone() {
     return PadKey(
       value: value,
       isClicked: false,
       currentIndex: currentIndex,
+      isMatched: false,
     );
+  }
+
+  getValue(){
+    return value;
+  }
+
+  isKeyClicked(){
+    return isClicked;
+  }
+  isKeyMatched(){
+    return isMatched;
   }
 }
 
@@ -119,6 +154,7 @@ class AnswerKey {
   int? correctIndex;
   String? correctValue;
   bool hintShow;
+  bool onDoubleTapped;
 
   AnswerKey({
     this.hintShow = false,
@@ -126,6 +162,7 @@ class AnswerKey {
     this.currentValue,
     this.correctIndex,
     this.comingKeyPadIndex,
+    this.onDoubleTapped = false,
   });
 
   getCurrentValue() {
@@ -148,7 +185,16 @@ class AnswerKey {
     return currentValue == null;
   }
 
-  bool isNotClickable() {
-    return isValueMatch() || currentValue == null || hintShow;
+  bool isNotClickable({bool isDoubleClicked = false}) {
+    if (isDoubleClicked) {
+      return currentValue != null;
+      //isValueMatch()  || hintShow; // to able to select empty key with double click skip currentValue == null
+    } else {
+      return isValueMatch() || currentValue == null || hintShow;
+    }
+  }
+
+  void toggleDoubleOnTap() {
+    onDoubleTapped = !onDoubleTapped;
   }
 }

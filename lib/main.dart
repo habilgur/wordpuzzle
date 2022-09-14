@@ -5,6 +5,7 @@ import 'game_initialize.dart';
 //todo remove random key via interstitial ads - add question class isRandomKey properties
 // todo  watch rewarded admob win +2 hintRight. Limit it max 2 time per game
 // todo günlük oynama sınırı 5 yap eğer oynamak isterse ödüllü izlet ancak max 3 kez izleyebilisin.
+//todo her reload ve toplam player ödülü 1 ve katları olduğunda tebrik ve ödüllü
 
 void main() {
   runApp(

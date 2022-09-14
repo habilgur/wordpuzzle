@@ -30,7 +30,7 @@ class QuestionServices {
       quesList.add(
         Question(
           question: question,
-          questionPrice: question.length < 6 ? correctClickPrice : correctClickPrice * 2,
+          questionPrice: question.length < 6 ? correctClickPrice * 2 : correctClickPrice * 4,
           keyboardMap: shuffledPadKeys,
           answerMap: userAnswerMap,
         ),
@@ -62,7 +62,7 @@ class QuestionServices {
     // Generate Question
     return Question(
       question: question,
-      questionPrice: question.length * prizePerQuestionTile,
+      questionPrice: question.length < 6 ? correctClickPrice * 2 : correctClickPrice * 4,
       keyboardMap: shuffledPadKeys,
       answerMap: userAnswerMap,
     );
@@ -99,19 +99,26 @@ class QuestionServices {
   }
 
   void createHintThenRemoveFromShuffledKeys(List<AnswerKey> userAnswerMap, List<PadKey> shuffledPadKeys) {
-    int rand1 = 0, rand2 = 0;
+    int rand1 = 0, rand2 = 0, rand3 = 0;
     List<int> rndList = [];
-    while (rand1 == rand2) {
+    while (rand1 == rand2 || rand2 == rand3 || rand1 == rand3) {
       rand1 = Random().nextInt(userAnswerMap.length);
       rand2 = Random().nextInt(userAnswerMap.length);
-      if (rand1 != rand2) {
+      rand3 = Random().nextInt(userAnswerMap.length);
+      if (rand1 != rand2 && rand2 != rand3 && rand1 != rand3) {
         rndList.add(rand1);
         rndList.add(rand2);
+        rndList.add(rand3);
       }
     }
 
     // Set how much hint display via question lenght
-    userAnswerMap.length < 6 ? rndList.remove(rndList.last) : rndList;
+    if (userAnswerMap.length <= 4) {
+      rndList.remove(rand1);
+      rndList.remove(rand2); // 1 hint
+    } else if (userAnswerMap.length <= 6) {
+      rndList.remove(rand3); // 2 hint
+    }
 
     // change current value to correct value and hintShow true in userAnswerMap randomly according question length
     for (int index in rndList) {
@@ -122,6 +129,7 @@ class QuestionServices {
       // Remove hinted value from shuffle Keys
       var removeKeyPadWithHint = shuffledPadKeys.where((k) => k.value == answerKeyWithHint.currentValue).first;
       shuffledPadKeys.remove(removeKeyPadWithHint);
+
     }
   }
 
