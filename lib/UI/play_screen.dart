@@ -35,6 +35,10 @@ class _PlayScreenState extends State<PlayScreen> {
     return Container(
       constraints: const BoxConstraints.expand(),
       decoration: const BoxDecoration(
+        gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.white60, Colors.blueGrey, Colors.grey]),
         color: Colors.white,
         // backgroundBlendMode:BlendMode.colorBurn ,
         //image: DecorationImage(image: AssetImage("assets/images/pic_1.png"), fit: BoxFit.cover),
@@ -94,7 +98,7 @@ class _PlayScreenState extends State<PlayScreen> {
                               Color? color;
 
                               if (answerKeyItem.isValueMatch()) {
-                                color = Colors.green;
+                                color = correctColor;
                               } else if (answerKeyItem.onDoubleTapped) {
                                 color = Colors.yellow;
                               } else if (answerKeyItem.isEmpty()) {
@@ -135,9 +139,7 @@ class _PlayScreenState extends State<PlayScreen> {
                                       child: Text(
                                         (answerKeyItem.getCurrentValue() ?? ''),
                                         textScaleFactor: 2,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white70),
                                       ),
                                     ),
                                   ],
@@ -203,9 +205,9 @@ class _PlayScreenState extends State<PlayScreen> {
                                           width: 1.5,
                                         ),
                                         color: selectedKeyPad.isKeyMatched()
-                                            ? Colors.green
+                                            ? correctColor
                                             : selectedKeyPad.isKeyClicked()
-                                                ? Colors.grey
+                                                ? wrongColor
                                                 : color,
                                         borderRadius: BorderRadius.circular(30),
                                       ),
@@ -241,8 +243,8 @@ class _PlayScreenState extends State<PlayScreen> {
                         children: [
                           IconButton(
                             icon: const Icon(Icons.skip_next),
-                            iconSize: 30,
-                            color: Colors.grey,
+                            iconSize: 35,
+                            color: thePlayer.skipRight == 0 ? Colors.grey : Colors.white,
                             onPressed: () {
                               if (thePlayer.skipRight == 0) return;
                               listQuestions.add(QuestionServices().createAQuestion());
@@ -253,7 +255,9 @@ class _PlayScreenState extends State<PlayScreen> {
                           ),
                           Text(
                             "X ${thePlayer.skipRight}",
-                            style: const TextStyle(color: Colors.grey),
+                            style: TextStyle(
+                              color: thePlayer.skipRight == 0 ? Colors.grey : Colors.white,
+                            ),
                           )
                         ],
                       ),
@@ -261,8 +265,8 @@ class _PlayScreenState extends State<PlayScreen> {
                         children: [
                           IconButton(
                             icon: const Icon(Icons.favorite),
-                            iconSize: 30,
-                            color: thePlayer.hintRight == 0 ? Colors.grey.shade50 : Colors.grey,
+                            iconSize: 35,
+                            color: thePlayer.hintRight == 0 ? Colors.grey :Colors.white,
                             onPressed: () {
                               generateHint();
                               setState(() {});
@@ -270,14 +274,14 @@ class _PlayScreenState extends State<PlayScreen> {
                           ),
                           Text(
                             "X ${thePlayer.hintRight}",
-                            style: const TextStyle(color: Colors.grey),
+                            style: TextStyle(color: thePlayer.hintRight == 0 ? Colors.grey : Colors.white),
                           )
                         ],
                       ),
                       IconButton(
                         icon: const Icon(Icons.refresh),
-                        iconSize: 30,
-                        color: Colors.grey,
+                        iconSize: 35,
+                        color: Colors.white,
                         onPressed: () {
                           currentQues = QuestionServices().reShuffleQuestionKeyPad(currentQuestion: currentQues);
                           setState(() {});
@@ -293,10 +297,10 @@ class _PlayScreenState extends State<PlayScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  ElevatedButton(
-                    onPressed: () {},
-                    child: const Text("Banner Area"),
-                  ),
+                  // ElevatedButton(
+                  //   onPressed: () {},
+                  //   child: const Text("Banner Area"),
+                  // ),
                 ],
               ),
             ),
