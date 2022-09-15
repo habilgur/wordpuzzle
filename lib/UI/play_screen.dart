@@ -32,239 +32,264 @@ class _PlayScreenState extends State<PlayScreen> {
   Widget build(BuildContext context) {
     Question currentQues = listQuestions[indexQues];
     var screenSize = MediaQuery.of(context).size;
-    return SizedBox(
-      width: double.maxFinite,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Text("Ques:${indexQues + 1} / ${listQuestions.length}"),
-              const Text("CCP:$correctClickPrice"),
-              const Text("WCP:$wrongClickPrice"),
-            ],
-          ),
-          Expanded(
-              flex: 3,
-              child: Container(
-                width: double.maxFinite,
-                color: Colors.green,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Center(
-                      child: Text(
-                        "${thePlayer.point.toStringAsFixed(2)} ₺",
-                        textScaleFactor: 3,
-                      ),
-                    ),
-                    Center(
-                      child: Text(
-                        "${currentQues.questionPrice!.toStringAsFixed(2)} ₺",
-                        textScaleFactor: 2,
-                      ),
-                    ),
-                  ],
-                ),
-              )),
-          Expanded(
-            flex: 6,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
+    return Container(
+      constraints: const BoxConstraints.expand(),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        // backgroundBlendMode:BlendMode.colorBurn ,
+        //image: DecorationImage(image: AssetImage("assets/images/pic_1.png"), fit: BoxFit.cover),
+      ),
+      child: SizedBox(
+        width: double.maxFinite,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 10),
-                    alignment: Alignment.center,
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        return Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          mainAxisSize: MainAxisSize.min,
-                          children: currentQues.answerMap!.map((answerKeyItem) {
-                            Color? color;
-
-                            if (answerKeyItem.isValueMatch()) {
-                              color = Colors.green;
-                            } else if (answerKeyItem.onDoubleTapped) {
-                              color = Colors.yellow;
-                            } else if (answerKeyItem.isEmpty()) {
-                              color = Colors.white;
-                            } else {
-                              color = Colors.red;
-                            }
-
-                            return InkWell(
-                              onDoubleTap: () {
-                                // Make Key selectable
-                                if (answerKeyItem.isNotClickable(isDoubleClicked: true)) return;
-                                answerKeyItem.toggleDoubleOnTap();
-                                setState(() {});
-                              },
-                              onTap: () {
-                                if (answerKeyItem.isNotClickable()) return;
-
-                                currentQues.answerKeyClickAction(answerKeyItem);
-
-                                setState(() {});
-                              },
-                              child: Container(
-                                width: screenSize.width * 1 / screenDivideNum,
-                                height: screenSize.width * 0.11,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                    color: color,
-                                    border: Border.all(
-                                      color: Colors.blueAccent,
-                                      width: 2,
-                                    )),
-                                child: Text(
-                                  (answerKeyItem.getCurrentValue() ?? ''),
-                                  textScaleFactor: 2,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                          padding: const EdgeInsets.all(5),
-                          alignment: Alignment.center,
-                          child: Wrap(
-                            runSpacing: 5,
-                            spacing: 5,
-                            alignment: WrapAlignment.center,
-                            children: List.generate(currentQues.keyboardMap!.length, (index) {
-                              var selectedKeyPad = currentQues.keyboardMap![index];
-                              Color color = const Color(0xff7EE7FD);
-                              return InkWell(
-                                onDoubleTap: () {},
-                                onTap: () async {
-                                  if (!selectedKeyPad.isKeyClicked()) {
-                                    currentQues.updateQuestionPrize(selectedKeyPad);
-
-                                    currentQues.padKeyClickAction(selectedPadKey: selectedKeyPad);
-
-                                    if (currentQues.isAnswerCorrect()) {
-                                      currentQues.isDone = true;
-                                      thePlayer.addQuestionPrize(currentQues.questionPrice!);
-
-                                      await Future.delayed(const Duration(seconds: 1));
-                                      nextQuestion();
-                                    }
-                                  } else if (selectedKeyPad.isKeyClicked() && !selectedKeyPad.isKeyMatched()) {
-                                    selectedKeyPad.toggleClickStatus();
-                                    currentQues.clearBoards();
-                                  }
-
-                                  setState(() {});
-                                },
-                                child: Container(
-                                  height: MediaQuery.of(context).size.width * 0.14,
-                                  width: MediaQuery.of(context).size.width * 0.13,
-                                  decoration: BoxDecoration(
-                                    color: selectedKeyPad.isKeyMatched()
-                                        ? Colors.green
-                                        : selectedKeyPad.isKeyClicked()
-                                            ? Colors.grey
-                                            : color,
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    selectedKeyPad.getValue()!,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    textScaleFactor: 1.8,
-                                  ),
-                                ),
-                              );
-                            }),
-                          )),
-                    ],
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.cleaning_services),
-                      iconSize: 30,
-                      color: Colors.white,
-                      onPressed: () {
-                        currentQues.clearBoards();
-                        setState(() {});
-                      },
-                    ),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.skip_next),
-                          iconSize: 30,
-                          color: Colors.white,
-                          onPressed: () {
-                            if (thePlayer.skipRight == 0) return;
-                            listQuestions.add(QuestionServices().createAQuestion());
-                            thePlayer.reduceSkipRightNum();
-                            nextQuestion();
-                            setState(() {});
-                          },
-                        ),
-                        Text(
-                          "X ${thePlayer.skipRight}",
-                          style: const TextStyle(color: Colors.white),
-                        )
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.favorite),
-                          iconSize: 30,
-                          color: thePlayer.hintRight == 0 ? Colors.grey : Colors.white,
-                          onPressed: () {
-                            generateHint();
-                            setState(() {});
-                          },
-                        ),
-                        Text(
-                          "X ${thePlayer.hintRight}",
-                          style: const TextStyle(color: Colors.white),
-                        )
-                      ],
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.refresh),
-                      iconSize: 30,
-                      color: Colors.white,
-                      onPressed: () {
-                        currentQues = QuestionServices().reShuffleQuestionKeyPad(currentQuestion: currentQues);
-                        setState(() {});
-                      },
-                    )
-                  ],
-                ),
+                Text("Ques:${indexQues + 1} / ${listQuestions.length}"),
+                const Text("CCP:$correctClickPrice"),
+                const Text("WCP:$wrongClickPrice"),
               ],
             ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Container(
-              color: Colors.green,
+            Expanded(
+                flex: 3,
+                child: SizedBox(
+                  width: double.maxFinite,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Center(
+                        child: Text(
+                          "${thePlayer.point.toStringAsFixed(2)} ₺",
+                          textScaleFactor: 3,
+                        ),
+                      ),
+                      Center(
+                        child: Text(
+                          "${currentQues.questionPrice!.toStringAsFixed(2)} ₺",
+                          textScaleFactor: 2,
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+            Expanded(
+              flex: 6,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 10),
+                      alignment: Alignment.center,
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.max,
+                            children: currentQues.answerMap!.map((answerKeyItem) {
+                              Color? color;
+
+                              if (answerKeyItem.isValueMatch()) {
+                                color = Colors.green;
+                              } else if (answerKeyItem.onDoubleTapped) {
+                                color = Colors.yellow;
+                              } else if (answerKeyItem.isEmpty()) {
+                                color = Colors.white70;
+                              } else {
+                                color = Colors.grey;
+                              }
+
+                              return InkWell(
+                                onDoubleTap: () {
+                                  // Make Key selectable
+                                  if (answerKeyItem.isNotClickable(isDoubleClicked: true)) return;
+
+                                  setState(() {
+                                    answerKeyItem.toggleDoubleOnTap();
+                                  });
+                                },
+                                onTap: () {
+                                  if (answerKeyItem.isNotClickable()) return;
+
+                                  setState(() {
+                                    currentQues.answerKeyClickAction(answerKeyItem);
+                                  });
+                                },
+                                child: Row(
+                                  children: [
+                                    const SizedBox(width: 2),
+                                    Container(
+                                      width: screenSize.width * 1 / screenDivideNum,
+                                      height: screenSize.width * 0.11,
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                          color: color,
+                                          border: Border.all(
+                                            color: Colors.grey.shade300,
+                                            width: 1.5,
+                                          )),
+                                      child: Text(
+                                        (answerKeyItem.getCurrentValue() ?? ''),
+                                        textScaleFactor: 2,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                            padding: const EdgeInsets.all(5),
+                            alignment: Alignment.center,
+                            child: Wrap(
+                              runSpacing: 5,
+                              spacing: 5,
+                              alignment: WrapAlignment.center,
+                              children: List.generate(currentQues.keyboardMap!.length, (index) {
+                                var selectedKeyPad = currentQues.keyboardMap![index];
+                                Color color = Colors.white;
+                                return InkWell(
+                                  onDoubleTap: () {},
+                                  onTap: () async {
+                                    if (!selectedKeyPad.isKeyClicked()) {
+                                      setState(() {
+                                        currentQues.padKeyClickAction(selectedPadKey: selectedKeyPad);
+                                      });
+
+                                      if (currentQues.isAnswerCorrect()) {
+                                        setState(() {
+                                          currentQues.isDone = true;
+                                          thePlayer.addQuestionPrize(currentQues.questionPrice!);
+                                        });
+
+                                        await Future.delayed(const Duration(seconds: 2));
+                                        nextQuestion();
+                                      }
+                                    } else if (selectedKeyPad.isKeyClicked() && !selectedKeyPad.isKeyMatched()) {
+                                      setState(() {
+                                        selectedKeyPad.toggleClickStatus();
+                                        currentQues.clearBoards();
+                                      });
+                                    }
+                                  },
+                                  child: AnimatedPhysicalModel(
+                                    duration: const Duration(milliseconds: 100),
+                                    curve: Curves.fastOutSlowIn,
+                                    elevation: selectedKeyPad.isKeyClicked() ? 9 : 1,
+                                    shape: BoxShape.circle,
+                                    color: Colors.white,
+                                    shadowColor: Colors.black,
+                                    child: Container(
+                                      height: MediaQuery.of(context).size.width * 0.14,
+                                      width: MediaQuery.of(context).size.width * 0.13,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: selectedKeyPad.isKeyClicked() ? Colors.white70 : Colors.grey.shade200,
+                                          width: 1.5,
+                                        ),
+                                        color: selectedKeyPad.isKeyMatched()
+                                            ? Colors.green
+                                            : selectedKeyPad.isKeyClicked()
+                                                ? Colors.grey
+                                                : color,
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        selectedKeyPad.getValue()!,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        textScaleFactor: 1.8,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }),
+                            )),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      // IconButton(
+                      //   icon: const Icon(Icons.cleaning_services),
+                      //   iconSize: 30,
+                      //   color: Colors.white,
+                      //   onPressed: () {
+                      //     currentQues.clearBoards();
+                      //     setState(() {});
+                      //   },
+                      // ),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.skip_next),
+                            iconSize: 30,
+                            color: Colors.grey,
+                            onPressed: () {
+                              if (thePlayer.skipRight == 0) return;
+                              listQuestions.add(QuestionServices().createAQuestion());
+                              thePlayer.reduceSkipRightNum();
+                              nextQuestion();
+                              //setState(() {});
+                            },
+                          ),
+                          Text(
+                            "X ${thePlayer.skipRight}",
+                            style: const TextStyle(color: Colors.grey),
+                          )
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.favorite),
+                            iconSize: 30,
+                            color: thePlayer.hintRight == 0 ? Colors.grey.shade50 : Colors.grey,
+                            onPressed: () {
+                              generateHint();
+                              setState(() {});
+                            },
+                          ),
+                          Text(
+                            "X ${thePlayer.hintRight}",
+                            style: const TextStyle(color: Colors.grey),
+                          )
+                        ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.refresh),
+                        iconSize: 30,
+                        color: Colors.grey,
+                        onPressed: () {
+                          currentQues = QuestionServices().reShuffleQuestionKeyPad(currentQuestion: currentQues);
+                          setState(() {});
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 1,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -275,8 +300,8 @@ class _PlayScreenState extends State<PlayScreen> {
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -289,7 +314,9 @@ class _PlayScreenState extends State<PlayScreen> {
 
   void nextQuestion() {
     if (listQuestions.length - 1 > indexQues) {
-      indexQues++;
+      setState(() {
+        indexQues++;
+      });
     } else {
       Navigator.push(context, MaterialPageRoute(builder: (context) => const FinishScreen()));
     }
@@ -318,12 +345,12 @@ class _PlayScreenState extends State<PlayScreen> {
       currentQues.keyboardMap!.remove(theValue);
 
       if (currentQues.isAnswerCorrect()) {
-        currentQues.isDone = true;
-        thePlayer.addQuestionPrize(currentQues.questionPrice!);
+        setState(() {
+          currentQues.isDone = true;
+          thePlayer.addQuestionPrize(currentQues.questionPrice!);
+        });
 
-        setState(() {});
-
-        await Future.delayed(const Duration(seconds: 1));
+        await Future.delayed(const Duration(seconds: 2));
         nextQuestion();
       }
 

@@ -1,4 +1,4 @@
-const int screenDivideNum = 12;
+const int screenDivideNum = 13;
 const int quesPointMultiply = 2; // Don't change it.
 const double keyPrize = 0.01;
 

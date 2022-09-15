@@ -26,22 +26,16 @@ class _GameInitState extends State<GameInit> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Container(
-          color: Colors.green,
-          child: Column(
-            children: [
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return Container(
-                      color: Colors.blue,
-                      child: PlayScreen(thePlayer),
-                    );
-                  },
-                ),
+        child: Column(
+          children: [
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return PlayScreen(thePlayer);
+                },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

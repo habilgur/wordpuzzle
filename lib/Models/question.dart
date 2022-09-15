@@ -23,15 +23,8 @@ class Question {
     return answeredString == question;
   }
 
-  void updateQuestionPrize(PadKey selectedPadKey) {
-    // Avoid range Error Index
-    if (_isAnswerMapFull()) return;
-
-    var firstEmptyAnswerKey = answerMap!.where((k) => k.currentValue == null).first;
-
-    bool isCorrect = firstEmptyAnswerKey.correctValue == selectedPadKey.value;
-
-    if (isCorrect) {
+  void _updateQuestionPrize(PadKey selectedPadKey) {
+    if (selectedPadKey.isMatched!) {
       increaseQuestionPrice();
     } else {
       reduceQuestionPrice();
@@ -59,6 +52,9 @@ class Question {
     // set Pad part
     selectedPadKey.isClicked = true;
     selectedPadKey.isMatched = theAnswerKey.isValueMatch();
+
+    // Update Question Price
+    _updateQuestionPrize(selectedPadKey);
   }
 
   _findTargetedAnswerKey() {
@@ -77,8 +73,6 @@ class Question {
   }
 
   void answerKeyClickAction(AnswerKey answerKey) {
-    if (_isAnswerMapFull()) return;
-
     // Colorize Key Pad
     keyboardMap![answerKey.comingKeyPadIndex!].isClicked = false;
 
