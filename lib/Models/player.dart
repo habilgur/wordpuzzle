@@ -2,13 +2,14 @@ import '../Utils/constant_data.dart';
 
 class Player {
   String name;
-  double point = 0;
+  double gamePrize = 0;
   int hintRight = playerHintClickLimit;
   int skipRight = playerSkipLimit;
+  int wrongClickCount=0;
 
   Player({required this.name});
 
-  currentPoint() => point;
+  currentGamePrize() => gamePrize;
 
   hintRightNum() => hintRight;
 
@@ -18,7 +19,7 @@ class Player {
   // Ads (+) prize to player point
   addQuestionPrize(double prize) {
     if (prize > 0) {
-      point = point + prize;
+      gamePrize = gamePrize + prize;
     }
   }
 }

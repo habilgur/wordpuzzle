@@ -20,7 +20,6 @@ class _PlayScreenState extends State<PlayScreen> {
   late List<Question> listQuestions;
   late Player thePlayer;
   int indexQues = 0; // current index question
-  int clickCount = 0;
 
   @override
   void initState() {
@@ -34,21 +33,23 @@ class _PlayScreenState extends State<PlayScreen> {
     Question currentQues = listQuestions[indexQues];
 
     return Container(
-      constraints: const BoxConstraints.expand(),
       decoration: BoxDecoration(
         image: DecorationImage(image: widget.randomBg, fit: BoxFit.cover),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          infoPart(currentQues),
-          const SizedBox(height: 2),
-          questionPart(currentQues),
-          const SizedBox(height: 2),
-          actionButtonsPart(currentQues),
-          const SizedBox(height: 2),
-          bannerPart(),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
+            infoPart(currentQues),
+            const SizedBox(height: 2),
+            questionPart(currentQues),
+            const SizedBox(height: 2),
+            actionButtonsPart(currentQues),
+            const SizedBox(height: 2),
+            bannerPart(),
+          ],
+        ),
       ),
     );
   }
@@ -58,7 +59,7 @@ class _PlayScreenState extends State<PlayScreen> {
         flex: 3,
         child: Container(
           decoration: BoxDecoration(
-              color: Colors.black26,
+              color: Colors.black38,
               borderRadius: const BorderRadius.all(Radius.circular(15)),
               border: Border.all(
                 color: Colors.white70,
@@ -70,19 +71,17 @@ class _PlayScreenState extends State<PlayScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                "Ödül: ${(oneGameStartPrice - (clickCount * wrongClickPrice)).toStringAsFixed(2)}₺",
+                "Ödül: ${((thePlayer.gamePrize)).toStringAsFixed(2)}₺",
                 textScaleFactor: 3,
                 style: const TextStyle(color: Colors.white),
               ),
-
               Text(
-                clickCount == 0 ? "Waiting Your Move" : " Yanlış Tahmin Sayısı: $clickCount ",
+                thePlayer.wrongClickCount == 0 ? "Hamle Bekleniyor..." : " Kalan Tahmin Hakkı: ${thePlayer.wrongClickCount} ",
                 textScaleFactor: 1.5,
                 style: const TextStyle(color: Colors.white),
               ),
               const Text(
-                "Her yanlış tahmin - $wrongClickPrice₺ sayılır. ",
-
+                "Her doğru cevap + $correctAnswerPrize ₺ değerindedir. ",
                 style: TextStyle(color: Colors.white),
               ),
               Text(
@@ -96,10 +95,10 @@ class _PlayScreenState extends State<PlayScreen> {
 
   questionPart(Question currentQues) {
     return Expanded(
-      flex: 6,
+      flex: 5,
       child: Container(
         decoration: BoxDecoration(
-            color: Colors.black26,
+            color: Colors.black38,
             borderRadius: const BorderRadius.all(Radius.circular(15)),
             border: Border.all(
               color: Colors.white70,
@@ -120,7 +119,6 @@ class _PlayScreenState extends State<PlayScreen> {
     var screenSize = MediaQuery.of(context).size;
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 10),
         alignment: Alignment.center,
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -206,6 +204,7 @@ class _PlayScreenState extends State<PlayScreen> {
                         if (currentQues.isAnswerCorrect()) {
                           setState(() {
                             currentQues.isDone = true;
+                            thePlayer.gamePrize = thePlayer.gamePrize + correctAnswerPrize;
                           });
 
                           await Future.delayed(const Duration(seconds: 2));
@@ -217,11 +216,8 @@ class _PlayScreenState extends State<PlayScreen> {
                           currentQues.clearBoards();
                         });
                       }
-                      // check after click process end-- is key pad selected and unmatched count as a fail
                       if (selectedKeyPad.isKeyClicked() && !selectedKeyPad.isKeyMatched()) {
-                        setState(() {
-                          clickCount++;
-                        });
+                        thePlayer.wrongClickCount++;
                       }
                     },
                     child: AnimatedPhysicalModel(
@@ -269,75 +265,77 @@ class _PlayScreenState extends State<PlayScreen> {
   }
 
   actionButtonsPart(Question currentQues) {
-    return Container(
-      decoration: BoxDecoration(
-          color: Colors.black26,
-          borderRadius: const BorderRadius.all(Radius.circular(15)),
-          border: Border.all(
-            color: Colors.white70,
-            width: 1,
-          )),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          // IconButton(
-          //   icon: const Icon(Icons.cleaning_services),
-          //   iconSize: 30,
-          //   color: Colors.white,
-          //   onPressed: () {
-          //     currentQues.clearBoards();
-          //     setState(() {});
-          //   },
-          // ),
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.skip_next),
-                iconSize: 35,
-                color: thePlayer.skipRight == 0 ? Colors.grey : Colors.white,
-                onPressed: () {
-                  if (thePlayer.skipRight == 0) return;
-                  listQuestions.add(QuestionServices().createAQuestion());
-                  thePlayer.reduceSkipRightNum();
-                  nextQuestion();
-                  //setState(() {});
-                },
-              ),
-              Text(
-                "X ${thePlayer.skipRight}",
-                style: TextStyle(
+    return Expanded(
+      child: Container(
+        decoration: BoxDecoration(
+            color: Colors.black38,
+            borderRadius: const BorderRadius.all(Radius.circular(15)),
+            border: Border.all(
+              color: Colors.white70,
+              width: 1,
+            )),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            // IconButton(
+            //   icon: const Icon(Icons.cleaning_services),
+            //   iconSize: 30,
+            //   color: Colors.white,
+            //   onPressed: () {
+            //     currentQues.clearBoards();
+            //     setState(() {});
+            //   },
+            // ),
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.double_arrow_sharp),
+                  iconSize: 35,
                   color: thePlayer.skipRight == 0 ? Colors.grey : Colors.white,
+                  onPressed: () {
+                    if (thePlayer.skipRight == 0) return;
+                    listQuestions.add(QuestionServices().createAQuestion());
+                    thePlayer.reduceSkipRightNum();
+                    nextQuestion();
+                    //setState(() {});
+                  },
                 ),
-              )
-            ],
-          ),
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.favorite),
-                iconSize: 35,
-                color: thePlayer.hintRight == 0 ? Colors.grey : Colors.white,
-                onPressed: () {
-                  generateHint();
-                  setState(() {});
-                },
-              ),
-              Text(
-                "X ${thePlayer.hintRight}",
-                style: TextStyle(color: thePlayer.hintRight == 0 ? Colors.grey : Colors.white),
-              )
-            ],
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            iconSize: 35,
-            color: Colors.white,
-            onPressed: () {
-              currentQues = QuestionServices().reShuffleQuestionKeyPad(currentQuestion: currentQues);
-              setState(() {});
-            },
-          ),
-        ],
+                Text(
+                  "X ${thePlayer.skipRight}",
+                  style: TextStyle(
+                    color: thePlayer.skipRight == 0 ? Colors.grey : Colors.white,
+                  ),
+                )
+              ],
+            ),
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.auto_awesome_outlined),
+                  iconSize: 35,
+                  color: thePlayer.hintRight == 0 ? Colors.grey : Colors.white,
+                  onPressed: () {
+                    generateHint();
+                    setState(() {});
+                  },
+                ),
+                Text(
+                  "X ${thePlayer.hintRight}",
+                  style: TextStyle(color: thePlayer.hintRight == 0 ? Colors.grey : Colors.white),
+                )
+              ],
+            ),
+            IconButton(
+              icon: const Icon(Icons.all_inclusive_outlined),
+              iconSize: 35,
+              color: Colors.white,
+              onPressed: () {
+                currentQues = QuestionServices().reShuffleQuestionKeyPad(currentQuestion: currentQues);
+                setState(() {});
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -364,7 +362,7 @@ class _PlayScreenState extends State<PlayScreen> {
   void restartGame() {
     listQuestions = QuestionServices().creteQuestionList();
     indexQues = 0;
-    clickCount = 0;
+    thePlayer.wrongClickCount = 0;
     setState(() {});
   }
 
@@ -403,6 +401,7 @@ class _PlayScreenState extends State<PlayScreen> {
       if (currentQues.isAnswerCorrect()) {
         setState(() {
           currentQues.isDone = true;
+          thePlayer.gamePrize = thePlayer.gamePrize + correctAnswerPrize;
         });
 
         await Future.delayed(const Duration(seconds: 2));
