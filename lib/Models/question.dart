@@ -2,7 +2,7 @@ import '../Utils/constant_data.dart';
 
 class Question {
   String? question;
-  double? questionPrice = 0;
+
   bool isDone = false;
   bool isFull = false;
   List<AnswerKey>? answerMap = <AnswerKey>[];
@@ -10,7 +10,6 @@ class Question {
 
   Question({
     this.question,
-    this.questionPrice,
     this.answerMap,
     this.keyboardMap,
   });
@@ -21,24 +20,6 @@ class Question {
     String answeredString = answerMap!.map((m) => m.currentValue).join("");
 
     return answeredString == question;
-  }
-
-  void _updateQuestionPrize(PadKey selectedPadKey) {
-    if (selectedPadKey.isMatched!) {
-      increaseQuestionPrice();
-    } else {
-      reduceQuestionPrice();
-    }
-  }
-
-  ///Deduct ClickPrice from QuestionPrize as default. Option: HintPrize
-  void reduceQuestionPrice({double deduct = wrongClickPrice}) {
-    //if (questionPrice! -deduct < -0.00001) return; // Avoid Question Price below zero.
-    questionPrice = questionPrice! - deduct;
-  }
-
-  void increaseQuestionPrice() {
-    questionPrice = questionPrice! + correctClickPrice;
   }
 
   void padKeyClickAction({required PadKey selectedPadKey}) {
@@ -52,32 +33,21 @@ class Question {
     // set Pad part
     selectedPadKey.isClicked = true;
     selectedPadKey.isMatched = theAnswerKey.isValueMatch();
-
-    // Update Question Price
-    _updateQuestionPrize(selectedPadKey);
   }
 
   _findTargetedAnswerKey() {
-    var isAnyOnDoubleTapAnsKeyExist = answerMap!.any((map) => map.onDoubleTapped == true);
+    var isAnyOnSelectedAnsKeyExist = answerMap!.any((map) => map.onSelected == true);
     var isEmptyAnswerKeyExist = answerMap!.any((map) => map.currentValue == null);
 
     int lookingIndexOfAnsKey = 0;
-    if (isAnyOnDoubleTapAnsKeyExist) {
-      lookingIndexOfAnsKey = answerMap!.indexWhere((map) => map.onDoubleTapped);
+    if (isAnyOnSelectedAnsKeyExist) {
+      lookingIndexOfAnsKey = answerMap!.indexWhere((map) => map.onSelected);
       answerMap![lookingIndexOfAnsKey].toggleDoubleOnTap(); // always lock this properties again
     } else if (isEmptyAnswerKeyExist) {
       lookingIndexOfAnsKey = answerMap!.indexWhere((map) => map.currentValue == null);
     }
 
     return answerMap![lookingIndexOfAnsKey];
-  }
-
-  void answerKeyClickAction(AnswerKey answerKey) {
-    // Colorize Key Pad
-    keyboardMap![answerKey.comingKeyPadIndex!].isClicked = false;
-
-    // Clear Answer Key value
-    answerKey.clearValue();
   }
 
   void clearBoards() {
@@ -150,7 +120,7 @@ class AnswerKey {
   int? correctIndex;
   String? correctValue;
   bool hintShow;
-  bool onDoubleTapped;
+  bool onSelected;
 
   AnswerKey({
     this.hintShow = false,
@@ -158,7 +128,7 @@ class AnswerKey {
     this.currentValue,
     this.correctIndex,
     this.comingKeyPadIndex,
-    this.onDoubleTapped = false,
+    this.onSelected = false,
   });
 
   getCurrentValue() {
@@ -181,15 +151,11 @@ class AnswerKey {
     return currentValue == null;
   }
 
-  bool isNotClickable({bool isDoubleClicked = false}) {
-    if (isDoubleClicked) {
-      return currentValue != null; // to able to select empty key with double click skip currentValue == null
-    } else {
-      return isValueMatch() || currentValue == null || hintShow;
-    }
+  bool isNotClickable() {
+    return isValueMatch() || currentValue != null || hintShow;
   }
 
   void toggleDoubleOnTap() {
-    onDoubleTapped = !onDoubleTapped;
+    onSelected = !onSelected;
   }
 }

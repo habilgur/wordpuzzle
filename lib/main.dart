@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'game_initialize.dart';
 
+//todo getx implementation
+
+//todo alt: oyun sonunda bitime puanı ver. Ve bitmeden önce rewarded izlettir.? yada başta?
 //todo time limit
 //todo remove random key via interstitial ads - add question class isRandomKey properties
 // todo  watch rewarded admob win +2 hintRight. Limit it max 2 time per game
@@ -21,6 +24,7 @@ class MyApp extends StatelessWidget {
     return const MaterialApp(
       title: 'Welcome to Words',
       home: GameInit(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }

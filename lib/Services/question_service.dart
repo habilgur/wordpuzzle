@@ -30,7 +30,6 @@ class QuestionServices {
       quesList.add(
         Question(
           question: question,
-          questionPrice: question.length < 6 ? correctClickPrice * 2 : correctClickPrice * 4,
           keyboardMap: shuffledPadKeys,
           answerMap: userAnswerMap,
         ),
@@ -62,7 +61,6 @@ class QuestionServices {
     // Generate Question
     return Question(
       question: question,
-      questionPrice: question.length < 6 ? correctClickPrice * 2 : correctClickPrice * 4,
       keyboardMap: shuffledPadKeys,
       answerMap: userAnswerMap,
     );
@@ -70,7 +68,7 @@ class QuestionServices {
 
   List<String> createRandomKeys(String question) {
     List<String> randomList = [];
-    var randomCharNum = question.length < 5 ? 2 : 3;
+    var randomCharNum = question.length < 5 ? 3 : 4;
 
     for (int i = 0; i < randomCharNum; i++) {
       var randomKey = turkishAlphabet[Random().nextInt(turkishAlphabet.length)].toLowerCase();
