@@ -32,6 +32,7 @@ class QuestionServices {
           question: question,
           keyboardMap: shuffledPadKeys,
           answerMap: userAnswerMap,
+          wrongClickLimit: userAnswerMap.length-2,
         ),
       );
     }

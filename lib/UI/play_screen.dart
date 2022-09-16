@@ -59,7 +59,7 @@ class _PlayScreenState extends State<PlayScreen> {
         flex: 3,
         child: Container(
           decoration: BoxDecoration(
-              color: Colors.black38,
+              color: Colors.black45,
               borderRadius: const BorderRadius.all(Radius.circular(15)),
               border: Border.all(
                 color: Colors.white70,
@@ -76,7 +76,7 @@ class _PlayScreenState extends State<PlayScreen> {
                 style: const TextStyle(color: Colors.white),
               ),
               Text(
-                thePlayer.wrongClickCount == 0 ? "Hamle Bekleniyor..." : " Kalan Tahmin Hakkı: ${thePlayer.wrongClickCount} ",
+                "Kalan Harf Hakkı: ${currentQues.wrongClickLimit! - currentQues.wrongClickCount} ",
                 textScaleFactor: 1.5,
                 style: const TextStyle(color: Colors.white),
               ),
@@ -98,7 +98,7 @@ class _PlayScreenState extends State<PlayScreen> {
       flex: 5,
       child: Container(
         decoration: BoxDecoration(
-            color: Colors.black38,
+            color: Colors.black45,
             borderRadius: const BorderRadius.all(Radius.circular(15)),
             border: Border.all(
               color: Colors.white70,
@@ -196,6 +196,14 @@ class _PlayScreenState extends State<PlayScreen> {
                   return InkWell(
                     onDoubleTap: () {},
                     onTap: () async {
+                      if (!currentQues.isAnswerCorrect() &&
+                          currentQues.wrongClickCount >= currentQues.wrongClickLimit! - 1) {
+                        //todo show correct answer
+                        await Future.delayed(const Duration(seconds: 4));
+                        nextQuestion();
+                      } else if (currentQues.wrongClickCount >= currentQues.wrongClickLimit! - 1) {
+                        return;
+                      }
                       if (!selectedKeyPad.isKeyClicked()) {
                         setState(() {
                           currentQues.padKeyClickAction(selectedPadKey: selectedKeyPad);
@@ -204,6 +212,7 @@ class _PlayScreenState extends State<PlayScreen> {
                         if (currentQues.isAnswerCorrect()) {
                           setState(() {
                             currentQues.isDone = true;
+                            currentQues.wrongClickCount = 0;
                             thePlayer.gamePrize = thePlayer.gamePrize + correctAnswerPrize;
                           });
 
@@ -217,7 +226,7 @@ class _PlayScreenState extends State<PlayScreen> {
                         });
                       }
                       if (selectedKeyPad.isKeyClicked() && !selectedKeyPad.isKeyMatched()) {
-                        thePlayer.wrongClickCount++;
+                        currentQues.wrongClickCount++;
                       }
                     },
                     child: AnimatedPhysicalModel(
@@ -268,7 +277,7 @@ class _PlayScreenState extends State<PlayScreen> {
     return Expanded(
       child: Container(
         decoration: BoxDecoration(
-            color: Colors.black38,
+            color: Colors.black45,
             borderRadius: const BorderRadius.all(Radius.circular(15)),
             border: Border.all(
               color: Colors.white70,
@@ -291,7 +300,7 @@ class _PlayScreenState extends State<PlayScreen> {
                 IconButton(
                   icon: const Icon(Icons.double_arrow_sharp),
                   iconSize: 35,
-                  color: thePlayer.skipRight == 0 ? Colors.grey : Colors.white,
+                  color: thePlayer.skipRight == 0 ? Colors.white70 : Colors.cyanAccent,
                   onPressed: () {
                     if (thePlayer.skipRight == 0) return;
                     listQuestions.add(QuestionServices().createAQuestion());
@@ -303,7 +312,7 @@ class _PlayScreenState extends State<PlayScreen> {
                 Text(
                   "X ${thePlayer.skipRight}",
                   style: TextStyle(
-                    color: thePlayer.skipRight == 0 ? Colors.grey : Colors.white,
+                    color: thePlayer.skipRight == 0 ? Colors.white70 : Colors.white,
                   ),
                 )
               ],
@@ -311,9 +320,9 @@ class _PlayScreenState extends State<PlayScreen> {
             Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.auto_awesome_outlined),
+                  icon: const Icon(Icons.diamond),
                   iconSize: 35,
-                  color: thePlayer.hintRight == 0 ? Colors.grey : Colors.white,
+                  color: thePlayer.hintRight == 0 ? Colors.white70 : Colors.cyanAccent,
                   onPressed: () {
                     generateHint();
                     setState(() {});
@@ -321,14 +330,14 @@ class _PlayScreenState extends State<PlayScreen> {
                 ),
                 Text(
                   "X ${thePlayer.hintRight}",
-                  style: TextStyle(color: thePlayer.hintRight == 0 ? Colors.grey : Colors.white),
+                  style: TextStyle(color: thePlayer.hintRight == 0 ? Colors.white70 : Colors.white),
                 )
               ],
             ),
             IconButton(
               icon: const Icon(Icons.all_inclusive_outlined),
               iconSize: 35,
-              color: Colors.white,
+              color: Colors.cyanAccent,
               onPressed: () {
                 currentQues = QuestionServices().reShuffleQuestionKeyPad(currentQuestion: currentQues);
                 setState(() {});
@@ -362,7 +371,6 @@ class _PlayScreenState extends State<PlayScreen> {
   void restartGame() {
     listQuestions = QuestionServices().creteQuestionList();
     indexQues = 0;
-    thePlayer.wrongClickCount = 0;
     setState(() {});
   }
 
@@ -401,6 +409,7 @@ class _PlayScreenState extends State<PlayScreen> {
       if (currentQues.isAnswerCorrect()) {
         setState(() {
           currentQues.isDone = true;
+          currentQues.wrongClickCount = 0;
           thePlayer.gamePrize = thePlayer.gamePrize + correctAnswerPrize;
         });
 

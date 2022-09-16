@@ -1,5 +1,3 @@
-import '../Utils/constant_data.dart';
-
 class Question {
   String? question;
 
@@ -7,12 +5,17 @@ class Question {
   bool isFull = false;
   List<AnswerKey>? answerMap = <AnswerKey>[];
   List<PadKey>? keyboardMap = <PadKey>[];
+  int? wrongClickLimit=0;
+  int wrongClickCount=0;
 
   Question({
     this.question,
     this.answerMap,
     this.keyboardMap,
+    this.wrongClickLimit,
+    t
   });
+
 
   bool isAnswerCorrect() {
     if (!_isAnswerMapFull()) return false;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'game_initialize.dart';
 
 //todo getx implementation
@@ -12,7 +13,7 @@ import 'game_initialize.dart';
 
 void main() {
   runApp(
-    const MyApp(),
+    const GetMaterialApp(home: MyApp()),
   );
 }
 

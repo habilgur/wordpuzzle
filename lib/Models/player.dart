@@ -5,7 +5,7 @@ class Player {
   double gamePrize = 0;
   int hintRight = playerHintClickLimit;
   int skipRight = playerSkipLimit;
-  int wrongClickCount=0;
+
 
   Player({required this.name});
 
