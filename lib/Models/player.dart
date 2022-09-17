@@ -9,17 +9,5 @@ class Player {
 
   Player({required this.name});
 
-  currentGamePrize() => gamePrize;
 
-  hintRightNum() => hintRight;
-
-  reduceHintRightNum() => hintRight--;
-  // reduceSkipRightNum() => skipRight--;
-
-  // Ads (+) prize to player point
-  addQuestionPrize(double prize) {
-    if (prize > 0) {
-      gamePrize = gamePrize + prize;
-    }
-  }
 }

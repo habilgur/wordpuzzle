@@ -1,10 +1,9 @@
 import 'dart:math';
-
 import 'package:get/get.dart';
-import 'package:wordpuzzle/Controllers/player_controller.dart';
-import 'package:wordpuzzle/Models/question.dart';
-import 'package:wordpuzzle/Utils/constant_data.dart';
-import 'package:wordpuzzle/WordBank/turkish_list.dart';
+import '../Controllers/player_controller.dart';
+import '../Models/question.dart';
+import '../Utils/constant_data.dart';
+import '../WordBank/turkish_list.dart';
 import '../Models/answer_key.dart';
 import '../Models/padkey.dart';
 import '../UI/finish_screen.dart';
@@ -18,7 +17,7 @@ class QuestionController extends GetxController {
 
   @override
   void onInit() {
-    _listQuestions = creteQuestionList().obs;
+    _listQuestions = _creteQuestionList();
     super.onInit();
   }
 
@@ -28,63 +27,87 @@ class QuestionController extends GetxController {
 
   Question get currentQuestion => _currentQuestion = listQuestions[indexQuest];
 
-  increaseIndex() {
+  _increaseIndex() {
     indexQuest++;
     update();
   }
 
-  resetIndex() {
+  _resetIndex() {
     indexQuest = 0;
     update();
   }
 
-  void nextQuestion() {
+  void restartGame() {
+    _resetIndex();
+    _listQuestions = _creteQuestionList().obs;
+  }
+
+  void clearBoards() {
+    _clearAnswerKeyBoard();
+    _clearPadKeyMap();
+    update();
+  }
+
+  _isAnswerMapFull() {
+    bool complete = _currentQuestion.answerKeyMap!.where((puzzle) => puzzle.currentValue == null).isEmpty;
+    return complete;
+  }
+
+  void checkCurrentStatusOfQuestion() async {
+    await _checkFailOrDone();
+  }
+
+  _checkFailOrDone() async {
+    bool isClickLimitExceed = _currentQuestion.wrongClickCount >= _currentQuestion.wrongClickLimit!;
+    String answeredString = _currentQuestion.answerKeyMap!.map((m) => m.currentValue).join("");
+    var isOK = answeredString == _currentQuestion.question;
+
+    if (isClickLimitExceed) {
+      _currentQuestion.isClickLimitFail = true;
+      _showCorrectAnswer();
+      await Future.delayed(const Duration(seconds: 5));
+      _setNextQuestion();
+    } else if (isOK) {
+      _currentQuestion.isDone = true;
+      await Future.delayed(const Duration(seconds: 2));
+      Get.find<PlayerController>().addQuestionPrizeToPlayerWallet();
+      _setNextQuestion();
+    }
+    update();
+  }
+
+  _showCorrectAnswer() {
+    for (var key in _currentQuestion.answerKeyMap!) {
+      key.currentValue = key.correctValue;
+    }
+    update();
+  }
+
+  _setNextQuestion() async {
+    _resetQuestionVariables();
+
     if (listQuestions.length - 1 > indexQuest) {
-      increaseIndex();
+      _increaseIndex();
     } else {
       Get.to(const FinishScreen());
     }
   }
 
-  void restartGame() {
-    resetIndex();
-    _listQuestions = creteQuestionList().obs;
+  _resetQuestionVariables() {
+    _currentQuestion.isDone = false;
+    _currentQuestion.isClickLimitFail = false;
+    _currentQuestion.wrongClickCount = 0;
   }
 
-  void clearBoards() {
-    clearAnswerKeyBoard();
-    clearPadKeyMap();
-    update();
+  _isUIWaitingMode() {
+    return (_currentQuestion.isDone || _currentQuestion.isClickLimitFail);
   }
 
-  bool _isAnswerMapFull() {
-    bool complete = _currentQuestion.answerKeyMap!.where((puzzle) => puzzle.currentValue == null).isEmpty;
-    return complete;
-  }
-
-  checkAnswerCorrect() async {
-    if (!_isAnswerMapFull()) return false;
-
-    String answeredString = _currentQuestion.answerKeyMap!.map((m) => m.currentValue).join("");
-
-    var isOK = answeredString == _currentQuestion.question;
-
-    if (isOK) {
-      _currentQuestion.isDone = true;
-      _currentQuestion.wrongClickCount = 0;
-
-      var thePlayer = Get.find<PlayerController>().thePlayer();
-      thePlayer.gamePrize += correctAnswerPrize;
-
-      await Future.delayed(const Duration(seconds: 2));
-      nextQuestion();
-    }
-  }
-
-  generateHint() async {
-    var thePlayer = Get.find<PlayerController>().thePlayer();
-    if (Get.find<PlayerController>().thePlayer.value.hintRight == 0) return;
-    thePlayer.reduceHintRightNum();
+  void generateHint() async {
+    if (_isUIWaitingMode()) return;
+    var playerController = Get.find<PlayerController>();
+    if (playerController.thePlayer().hintRight == 0) return;
+    playerController.reduceHintRightNum();
 
     // Clear board and fill keyPad again to avoid empty search for already removed items from keyPad..
     clearBoards();
@@ -100,23 +123,24 @@ class QuestionController extends GetxController {
       userAnswer.hintShow = true;
 
       // remove hint from keypad ( avoid multiple removing find first occurrence then clear)
-      var theValue =
-          _currentQuestion.pedKeyMap!.where((element) => element.value == userAnswer.correctValue).first;
+      var theValue = _currentQuestion.pedKeyMap!.where((element) => element.value == userAnswer.correctValue).first;
       _currentQuestion.pedKeyMap!.remove(theValue);
 
-      if (checkAnswerCorrect()) {
-        _currentQuestion.isDone = true;
-        _currentQuestion.wrongClickCount = 0;
-        thePlayer.gamePrize = thePlayer.gamePrize + correctAnswerPrize;
-
-        await Future.delayed(const Duration(seconds: 2));
-        nextQuestion();
-      }
+      //checkAnswerCorrect();
     }
   }
 
+  void skipQuestion() {
+    if (_isUIWaitingMode())  return;
+    var playerController = Get.find<PlayerController>();
+    if (playerController.thePlayer().skipRight == 0) return;
+    _listQuestions.add(_createAQuestion());
+    playerController.reduceSkipRightNum();
+    _setNextQuestion();
+  }
+
   /// CREATE QUESTIONS ------------------------------------------------------------
-  List<Question> creteQuestionList() {
+  List<Question> _creteQuestionList() {
     List<Question> quesList = [];
     var theList = turkishWords.where((item) => item.length < 12).toList();
 
@@ -151,7 +175,7 @@ class QuestionController extends GetxController {
     return quesList;
   }
 
-  Question createAQuestion() {
+  Question _createAQuestion() {
     var theList = turkishWords.where((item) => item.length < 12).toList();
 
     var question = theList[Random().nextInt(theList.length)].toLowerCase();
@@ -241,10 +265,10 @@ class QuestionController extends GetxController {
     }
   }
 
-  reShuffleQuestionKeyPad({required Rx<Question> currentQuestion}) {
-    if (_currentQuestion.isDone) return;
+  reShuffleQuestionKeyPad() {
+   if(_isUIWaitingMode()) return;
     _currentQuestion.pedKeyMap!.shuffle();
-    return _currentQuestion;
+    update();
   }
 
   /// ANSWER KEY ------------------------------------------------------------
@@ -253,7 +277,7 @@ class QuestionController extends GetxController {
     update();
   }
 
-  void clearAnswerKeyBoard() {
+  void _clearAnswerKeyBoard() {
     var emptyAnswerKeys = _currentQuestion.answerKeyMap!.where((item) => item.currentValue != null).toList();
     for (var ans in emptyAnswerKeys) {
       if (ans.currentValue != ans.correctValue) {
@@ -275,7 +299,7 @@ class QuestionController extends GetxController {
     // set Pad part
     selectedPadKey.isClicked = !selectedPadKey.isClicked!;
     selectedPadKey.isMatched = theAnswerKey.isValueMatch();
-    if(!selectedPadKey.isMatched!) _currentQuestion.wrongClickCount++;
+    if (!selectedPadKey.isMatched!) _currentQuestion.wrongClickCount++;
     update();
   }
 
@@ -300,7 +324,7 @@ class QuestionController extends GetxController {
     update();
   }
 
-  void clearPadKeyMap() {
+  void _clearPadKeyMap() {
     var greyPadKeys = _currentQuestion.pedKeyMap!.where((item) => !item.isMatched! && item.isClicked!).toList();
     for (var key in greyPadKeys) {
       key.clearValue();

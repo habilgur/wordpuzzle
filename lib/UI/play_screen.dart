@@ -56,13 +56,11 @@ class PlayScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Obx(
-              () =>
-              Text(
-                "Ödül: ${((playerController.thePlayer().gamePrize)).toStringAsFixed(2)}₺",
-                textScaleFactor: 3,
-                style: const TextStyle(color: Colors.white),
-              )),
+              Obx(() => Text(
+                    "Ödül: ${((playerController.thePlayer().gamePrize)).toStringAsFixed(2)}₺",
+                    textScaleFactor: 3,
+                    style: const TextStyle(color: Colors.white),
+                  )),
               Text(
                 "Kalan Harf Hakkı: ${currentQues.wrongClickLimit! - currentQues.wrongClickCount} ",
                 textScaleFactor: 1.5,
@@ -117,7 +115,11 @@ class PlayScreen extends StatelessWidget {
               children: currentQues.answerKeyMap!.map((answerKeyItem) {
                 Color? color;
 
-                if (answerKeyItem.isValueMatch()) {
+                if (currentQues.isClickLimitFail) {
+                  color = Colors.red;
+                } else if (currentQues.isDone) {
+                  color = correctColor;
+                } else if (answerKeyItem.isValueMatch()) {
                   color = correctColor;
                 } else if (answerKeyItem.onSelected) {
                   color = Colors.green.shade200;
@@ -182,6 +184,7 @@ class PlayScreen extends StatelessWidget {
                   return InkWell(
                     onDoubleTap: () {},
                     onTap: () async {
+                      if (currentQues.isClickLimitFail == true) return;
                       // if (!questionController.isAnswerCorrect() &&
                       //     currentQues.wrongClickCount >= currentQues.wrongClickLimit! - 1) {
                       //   //todo show correct answer
@@ -196,7 +199,7 @@ class PlayScreen extends StatelessWidget {
                         questionController.togglePadKeyClickStatus(selectedKeyPad);
                         questionController.clearBoards();
                       }
-                      questionController.checkAnswerCorrect();
+                      questionController.checkCurrentStatusOfQuestion();
                     },
                     child: AnimatedPhysicalModel(
                       duration: const Duration(milliseconds: 100),
@@ -271,11 +274,7 @@ class PlayScreen extends StatelessWidget {
                   iconSize: 35,
                   color: playerController.thePlayer().skipRight == 0 ? Colors.white70 : Colors.cyanAccent,
                   onPressed: () {
-                    if (playerController.thePlayer().skipRight == 0) return;
-                    questionController.listQuestions.add(questionController.createAQuestion());
-                    playerController.reduceSkipRightNum();
-                    questionController.nextQuestion();
-
+                    questionController.skipQuestion();
                   },
                 ),
                 Obx(
@@ -296,13 +295,13 @@ class PlayScreen extends StatelessWidget {
                   iconSize: 35,
                   color: playerController.thePlayer.value.hintRight == 0 ? Colors.white70 : Colors.cyanAccent,
                   onPressed: () {
-                    Get.find<QuestionController>().generateHint();
+                    questionController.generateHint();
                   },
                 ),
                 Text(
                   "X ${playerController.thePlayer.value.hintRight}",
-                  style: TextStyle(
-                      color: playerController.thePlayer.value.hintRight == 0 ? Colors.white70 : Colors.white),
+                  style:
+                      TextStyle(color: playerController.thePlayer.value.hintRight == 0 ? Colors.white70 : Colors.white),
                 )
               ],
             ),
@@ -311,7 +310,7 @@ class PlayScreen extends StatelessWidget {
               iconSize: 35,
               color: Colors.cyanAccent,
               onPressed: () {
-                currentQues = questionController.reShuffleQuestionKeyPad(currentQuestion: currentQues);
+                questionController.reShuffleQuestionKeyPad();
               },
             ),
           ],

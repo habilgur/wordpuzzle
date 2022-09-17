@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:wordpuzzle/Controllers/init_controllers.dart';
-
+import '../Controllers/init_controllers.dart';
 import 'game_initialize.dart';
 
-//todo getx implementation
 
 //todo alt: oyun sonunda bitime puanı ver. Ve bitmeden önce rewarded izlettir.? yada başta?
 //todo time limit

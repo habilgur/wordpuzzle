@@ -11,6 +11,8 @@ class Question {
   int? wrongClickLimit=0;
   int wrongClickCount=0;
 
+  bool isClickLimitFail=false;
+
   Question({
     this.question,
     this.answerKeyMap,
