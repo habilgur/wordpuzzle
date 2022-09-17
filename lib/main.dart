@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:wordpuzzle/Controllers/init_controllers.dart';
+
 import 'game_initialize.dart';
 
 //todo getx implementation
@@ -11,7 +13,9 @@ import 'game_initialize.dart';
 // todo günlük oynama sınırı 5 yap eğer oynamak isterse ödüllü izlet ancak max 3 kez izleyebilisin.
 //todo her reload ve toplam player ödülü 1 ve katları olduğunda tebrik ve ödüllü
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Initializer().initControllers();
   runApp(
     const GetMaterialApp(home: MyApp()),
   );

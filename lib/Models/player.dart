@@ -14,7 +14,7 @@ class Player {
   hintRightNum() => hintRight;
 
   reduceHintRightNum() => hintRight--;
-  reduceSkipRightNum() => skipRight--;
+  // reduceSkipRightNum() => skipRight--;
 
   // Ads (+) prize to player point
   addQuestionPrize(double prize) {

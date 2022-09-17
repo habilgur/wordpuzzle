@@ -1,57 +1,43 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
-import '../Models/player.dart';
+import 'package:get/get.dart';
+import '../Controllers/player_controller.dart';
+import '../Controllers/question_controller.dart';
 import '../Models/question.dart';
-import '../Services/question_service.dart';
 import '../Utils/constant_data.dart';
-import 'finish_screen.dart';
 
-class PlayScreen extends StatefulWidget {
-  final Player thePlayer;
+final playerController = Get.find<PlayerController>();
+final questionController = Get.find<QuestionController>();
+
+class PlayScreen extends StatelessWidget {
   final AssetImage randomBg;
 
-  const PlayScreen(this.thePlayer, this.randomBg, {super.key});
-
-  @override
-  State<PlayScreen> createState() => _PlayScreenState();
-}
-
-class _PlayScreenState extends State<PlayScreen> {
-  late List<Question> listQuestions;
-  late Player thePlayer;
-  int indexQues = 0; // current index question
-
-  @override
-  void initState() {
-    super.initState();
-    listQuestions = QuestionServices().creteQuestionList();
-    thePlayer = widget.thePlayer;
-  }
+  const PlayScreen(this.randomBg, {super.key});
 
   @override
   Widget build(BuildContext context) {
-    Question currentQues = listQuestions[indexQues];
-
-    return Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(image: widget.randomBg, fit: BoxFit.cover),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            infoPart(currentQues),
-            const SizedBox(height: 2),
-            questionPart(currentQues),
-            const SizedBox(height: 2),
-            actionButtonsPart(currentQues),
-            const SizedBox(height: 2),
-            bannerPart(),
-          ],
+    return GetBuilder<QuestionController>(builder: (_) {
+      var currentQues = _.currentQuestion;
+      return Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(image: randomBg, fit: BoxFit.cover),
         ),
-      ),
-    );
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              infoPart(currentQues),
+              const SizedBox(height: 2),
+              questionPart(currentQues),
+              const SizedBox(height: 2),
+              actionButtonsPart(currentQues),
+              const SizedBox(height: 2),
+              bannerPart(),
+            ],
+          ),
+        ),
+      );
+    });
   }
 
   Expanded infoPart(Question currentQues) {
@@ -70,11 +56,13 @@ class _PlayScreenState extends State<PlayScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              Obx(
+              () =>
               Text(
-                "Ödül: ${((thePlayer.gamePrize)).toStringAsFixed(2)}₺",
+                "Ödül: ${((playerController.thePlayer().gamePrize)).toStringAsFixed(2)}₺",
                 textScaleFactor: 3,
                 style: const TextStyle(color: Colors.white),
-              ),
+              )),
               Text(
                 "Kalan Harf Hakkı: ${currentQues.wrongClickLimit! - currentQues.wrongClickCount} ",
                 textScaleFactor: 1.5,
@@ -85,7 +73,7 @@ class _PlayScreenState extends State<PlayScreen> {
                 style: TextStyle(color: Colors.white),
               ),
               Text(
-                "Ques:${indexQues + 1} / ${listQuestions.length}",
+                "Ques:${questionController.indexQuest + 1} / ${questionController.listQuestions.length}",
                 style: const TextStyle(color: Colors.white),
               ),
             ],
@@ -116,7 +104,7 @@ class _PlayScreenState extends State<PlayScreen> {
   }
 
   answerKeys(Question currentQues) {
-    var screenSize = MediaQuery.of(context).size;
+    var screenSize = Get.size;
     return Expanded(
       child: Container(
         alignment: Alignment.center,
@@ -126,7 +114,7 @@ class _PlayScreenState extends State<PlayScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.max,
-              children: currentQues.answerMap!.map((answerKeyItem) {
+              children: currentQues.answerKeyMap!.map((answerKeyItem) {
                 Color? color;
 
                 if (answerKeyItem.isValueMatch()) {
@@ -141,10 +129,8 @@ class _PlayScreenState extends State<PlayScreen> {
 
                 return InkWell(
                   onTap: () {
-                    if (answerKeyItem.isNotClickable()) return;
-                    setState(() {
-                      answerKeyItem.toggleDoubleOnTap();
-                    });
+                    if (!answerKeyItem.isClickable()) return;
+                    questionController.toggleAnswerKeyOnSelectStatus(answerKeyItem);
                   },
                   child: Row(
                     children: [
@@ -178,7 +164,7 @@ class _PlayScreenState extends State<PlayScreen> {
   }
 
   padKeys(Question currentQues) {
-    var screenSize = MediaQuery.of(context).size;
+    var screenSize = Get.size;
     return Expanded(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -190,44 +176,27 @@ class _PlayScreenState extends State<PlayScreen> {
                 runSpacing: 5,
                 spacing: 5,
                 alignment: WrapAlignment.center,
-                children: List.generate(currentQues.keyboardMap!.length, (index) {
-                  var selectedKeyPad = currentQues.keyboardMap![index];
+                children: List.generate(currentQues.pedKeyMap!.length, (index) {
+                  var selectedKeyPad = currentQues.pedKeyMap![index];
                   Color color = Colors.white;
                   return InkWell(
                     onDoubleTap: () {},
                     onTap: () async {
-                      if (!currentQues.isAnswerCorrect() &&
-                          currentQues.wrongClickCount >= currentQues.wrongClickLimit! - 1) {
-                        //todo show correct answer
-                        await Future.delayed(const Duration(seconds: 4));
-                        nextQuestion();
-                      } else if (currentQues.wrongClickCount >= currentQues.wrongClickLimit! - 1) {
-                        return;
-                      }
+                      // if (!questionController.isAnswerCorrect() &&
+                      //     currentQues.wrongClickCount >= currentQues.wrongClickLimit! - 1) {
+                      //   //todo show correct answer
+                      //   await Future.delayed(const Duration(seconds: 4));
+                      //   questionController.nextQuestion();
+                      // } else if (currentQues.wrongClickCount >= currentQues.wrongClickLimit! - 1) {
+                      //   return;
+                      // }
                       if (!selectedKeyPad.isKeyClicked()) {
-                        setState(() {
-                          currentQues.padKeyClickAction(selectedPadKey: selectedKeyPad);
-                        });
-
-                        if (currentQues.isAnswerCorrect()) {
-                          setState(() {
-                            currentQues.isDone = true;
-                            currentQues.wrongClickCount = 0;
-                            thePlayer.gamePrize = thePlayer.gamePrize + correctAnswerPrize;
-                          });
-
-                          await Future.delayed(const Duration(seconds: 2));
-                          nextQuestion();
-                        }
+                        questionController.padKeyClickAction(selectedPadKey: selectedKeyPad);
                       } else if (selectedKeyPad.isKeyClicked() && !selectedKeyPad.isKeyMatched()) {
-                        setState(() {
-                          selectedKeyPad.toggleClickStatus();
-                          currentQues.clearBoards();
-                        });
+                        questionController.togglePadKeyClickStatus(selectedKeyPad);
+                        questionController.clearBoards();
                       }
-                      if (selectedKeyPad.isKeyClicked() && !selectedKeyPad.isKeyMatched()) {
-                        currentQues.wrongClickCount++;
-                      }
+                      questionController.checkAnswerCorrect();
                     },
                     child: AnimatedPhysicalModel(
                       duration: const Duration(milliseconds: 100),
@@ -273,7 +242,7 @@ class _PlayScreenState extends State<PlayScreen> {
     );
   }
 
-  actionButtonsPart(Question currentQues) {
+  actionButtonsPart(currentQues) {
     return Expanded(
       child: Container(
         decoration: BoxDecoration(
@@ -300,37 +269,40 @@ class _PlayScreenState extends State<PlayScreen> {
                 IconButton(
                   icon: const Icon(Icons.double_arrow_sharp),
                   iconSize: 35,
-                  color: thePlayer.skipRight == 0 ? Colors.white70 : Colors.cyanAccent,
+                  color: playerController.thePlayer().skipRight == 0 ? Colors.white70 : Colors.cyanAccent,
                   onPressed: () {
-                    if (thePlayer.skipRight == 0) return;
-                    listQuestions.add(QuestionServices().createAQuestion());
-                    thePlayer.reduceSkipRightNum();
-                    nextQuestion();
-                    //setState(() {});
+                    if (playerController.thePlayer().skipRight == 0) return;
+                    questionController.listQuestions.add(questionController.createAQuestion());
+                    playerController.reduceSkipRightNum();
+                    questionController.nextQuestion();
+
                   },
                 ),
-                Text(
-                  "X ${thePlayer.skipRight}",
-                  style: TextStyle(
-                    color: thePlayer.skipRight == 0 ? Colors.white70 : Colors.white,
+                Obx(
+                  () => Text(
+                    "X ${playerController.thePlayer().skipRight}",
+                    style: TextStyle(
+                      color: playerController.thePlayer.value.skipRight == 0 ? Colors.white70 : Colors.white,
+                    ),
                   ),
                 )
               ],
             ),
+
             Row(
               children: [
                 IconButton(
                   icon: const Icon(Icons.diamond),
                   iconSize: 35,
-                  color: thePlayer.hintRight == 0 ? Colors.white70 : Colors.cyanAccent,
+                  color: playerController.thePlayer.value.hintRight == 0 ? Colors.white70 : Colors.cyanAccent,
                   onPressed: () {
-                    generateHint();
-                    setState(() {});
+                    Get.find<QuestionController>().generateHint();
                   },
                 ),
                 Text(
-                  "X ${thePlayer.hintRight}",
-                  style: TextStyle(color: thePlayer.hintRight == 0 ? Colors.white70 : Colors.white),
+                  "X ${playerController.thePlayer.value.hintRight}",
+                  style: TextStyle(
+                      color: playerController.thePlayer.value.hintRight == 0 ? Colors.white70 : Colors.white),
                 )
               ],
             ),
@@ -339,8 +311,7 @@ class _PlayScreenState extends State<PlayScreen> {
               iconSize: 35,
               color: Colors.cyanAccent,
               onPressed: () {
-                currentQues = QuestionServices().reShuffleQuestionKeyPad(currentQuestion: currentQues);
-                setState(() {});
+                currentQues = questionController.reShuffleQuestionKeyPad(currentQuestion: currentQues);
               },
             ),
           ],
@@ -368,57 +339,57 @@ class _PlayScreenState extends State<PlayScreen> {
   ///                                FUNCTIONS
   /// -------------------------------------------------------------------------------
 
-  void restartGame() {
-    listQuestions = QuestionServices().creteQuestionList();
-    indexQues = 0;
-    setState(() {});
-  }
+// void restartGame() {
+//   controller.listQuestions = QuestionServices().creteQuestionList();
+//   indexQues = 0;
+//   setState(() {});
+// }
+//
+// void nextQuestion() {
+//   if ( questionServices.listQuestions.length - 1 > indexQues) {
+//     setState(() {
+//       indexQues++;
+//     });
+//   } else {
+//     Navigator.push(context, MaterialPageRoute(builder: (context) => const FinishScreen()));
+//   }
+// }
 
-  void nextQuestion() {
-    if (listQuestions.length - 1 > indexQues) {
-      setState(() {
-        indexQues++;
-      });
-    } else {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => const FinishScreen()));
-    }
-  }
-
-  generateHint() async {
-    Question currentQues = listQuestions[indexQues];
-
-    if (thePlayer.hintRight == 0) return;
-    thePlayer.reduceHintRightNum();
-
-    // Clear board and fill keyPad again to avoid empty search for already removed items from keyPad..
-    currentQues.clearBoards();
-
-    List<AnswerKey> mapWithNoHints = currentQues.answerMap!.where((item) => !item.hintShow && item.isEmpty()).toList();
-
-    if (mapWithNoHints.isNotEmpty) {
-      int indexHint = Random().nextInt(mapWithNoHints.length);
-
-      var userAnswer = mapWithNoHints[indexHint];
-      userAnswer.currentValue = userAnswer.correctValue;
-      userAnswer.hintShow = true;
-
-      // remove hint from keypad ( avoid multiple removing find first occurrence then clear)
-      var theValue = currentQues.keyboardMap!.where((element) => element.value == userAnswer.correctValue).first;
-      currentQues.keyboardMap!.remove(theValue);
-
-      if (currentQues.isAnswerCorrect()) {
-        setState(() {
-          currentQues.isDone = true;
-          currentQues.wrongClickCount = 0;
-          thePlayer.gamePrize = thePlayer.gamePrize + correctAnswerPrize;
-        });
-
-        await Future.delayed(const Duration(seconds: 2));
-        nextQuestion();
-      }
-
-      // my wrong..not refresh.. damn..haha
-      setState(() {});
-    }
-  }
+// generateHint() async {
+//   Question currentQues =  questionServices.listQuestions[indexQues] as Question;
+//
+//   if (thePlayer.hintRight == 0) return;
+//   thePlayer.reduceHintRightNum();
+//
+//   // Clear board and fill keyPad again to avoid empty search for already removed items from keyPad..
+//   currentQues.clearBoards();
+//
+//   List<AnswerKey> mapWithNoHints = currentQues.answerMap!.where((item) => !item.hintShow && item.isEmpty()).toList();
+//
+//   if (mapWithNoHints.isNotEmpty) {
+//     int indexHint = Random().nextInt(mapWithNoHints.length);
+//
+//     var userAnswer = mapWithNoHints[indexHint];
+//     userAnswer.currentValue = userAnswer.correctValue;
+//     userAnswer.hintShow = true;
+//
+//     // remove hint from keypad ( avoid multiple removing find first occurrence then clear)
+//     var theValue = currentQues.keyboardMap!.where((element) => element.value == userAnswer.correctValue).first;
+//     currentQues.keyboardMap!.remove(theValue);
+//
+//     if (currentQues.isAnswerCorrect()) {
+//       setState(() {
+//         currentQues.isDone = true;
+//         currentQues.wrongClickCount = 0;
+//         thePlayer.gamePrize = thePlayer.gamePrize + correctAnswerPrize;
+//       });
+//
+//       await Future.delayed(const Duration(seconds: 2));
+//       nextQuestion();
+//     }
+//
+//     // my wrong..not refresh.. damn..haha
+//     setState(() {});
+//   }
+// }
 }

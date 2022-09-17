@@ -1,7 +1,5 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'Models/player.dart';
-import 'Models/question.dart';
 import 'UI/play_screen.dart';
 
 
@@ -13,8 +11,7 @@ class GameInit extends StatefulWidget {
 }
 
 class _GameInitState extends State<GameInit> {
-  late List<Question> listQuestions;
-  late Player thePlayer;
+
   late AssetImage randomBg;
 
 
@@ -22,7 +19,6 @@ class _GameInitState extends State<GameInit> {
   void initState() {
     super.initState();
 
-    thePlayer = Player(name: "test");
      randomBg=AssetImage("assets/images/pic_${Random().nextInt(21)+1}-min.jpg");
 
   }
@@ -36,7 +32,7 @@ class _GameInitState extends State<GameInit> {
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  return PlayScreen(thePlayer,randomBg);
+                  return PlayScreen(randomBg);
                 },
               ),
             ),
