@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:wordpuzzle/Controllers/audio_controller.dart';
-import 'package:wordpuzzle/Controllers/dialog_controller.dart';
-import 'package:wordpuzzle/UI/welcome_screen.dart';
+import '../Controllers/audio_controller.dart';
+import '../Controllers/dialog_controller.dart';
 import '../Controllers/player_controller.dart';
 import '../Controllers/question_controller.dart';
 import '../Models/question.dart';

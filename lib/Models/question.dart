@@ -1,4 +1,4 @@
-import 'package:wordpuzzle/Models/padkey.dart';
+import '../Models/padkey.dart';
 import 'answer_key.dart';
 
 class Question {

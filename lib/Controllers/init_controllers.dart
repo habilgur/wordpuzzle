@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
-import 'package:wordpuzzle/Controllers/dialog_controller.dart';
-import 'package:wordpuzzle/Controllers/padkey_controller.dart';
-import 'package:wordpuzzle/Controllers/player_controller.dart';
-import 'package:wordpuzzle/Controllers/question_controller.dart';
+import '../Controllers/dialog_controller.dart';
+import '../Controllers/padkey_controller.dart';
+import '../Controllers/player_controller.dart';
+import '../Controllers/question_controller.dart';
 
 import 'answer_key_controller.dart';
 import 'audio_controller.dart';
