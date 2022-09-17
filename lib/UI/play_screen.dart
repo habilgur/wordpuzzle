@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:wordpuzzle/Controllers/audio_controller.dart';
+import 'package:wordpuzzle/Controllers/dialog_controller.dart';
+import 'package:wordpuzzle/UI/welcome_screen.dart';
 import '../Controllers/player_controller.dart';
 import '../Controllers/question_controller.dart';
 import '../Models/question.dart';
@@ -15,29 +18,32 @@ class PlayScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<QuestionController>(builder: (_) {
-      var currentQues = _.currentQuestion;
-      return Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(image: randomBg, fit: BoxFit.cover),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              infoPart(currentQues),
-              const SizedBox(height: 2),
-              questionPart(currentQues),
-              const SizedBox(height: 2),
-              actionButtonsPart(currentQues),
-              const SizedBox(height: 2),
-              bannerPart(),
-            ],
+    return WillPopScope(
+      onWillPop: () async => await Get.find<DialogController>().showExitWarn(),
+      child: GetBuilder<QuestionController>(builder: (_) {
+        var currentQues = _.currentQuestion;
+        return Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(image: randomBg, fit: BoxFit.cover),
           ),
-        ),
-      );
-    });
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+                infoPart(currentQues),
+                const SizedBox(height: 2),
+                questionPart(currentQues),
+                const SizedBox(height: 2),
+                actionButtonsPart(currentQues),
+                const SizedBox(height: 2),
+                bannerPart(),
+              ],
+            ),
+          ),
+        );
+      }),
+    );
   }
 
   Expanded infoPart(Question currentQues) {
@@ -182,17 +188,10 @@ class PlayScreen extends StatelessWidget {
                   var selectedKeyPad = currentQues.pedKeyMap![index];
                   Color color = Colors.white;
                   return InkWell(
-                    onDoubleTap: () {},
+                    enableFeedback: false, // mute default click
                     onTap: () async {
-                      if (currentQues.isClickLimitFail == true) return;
-                      // if (!questionController.isAnswerCorrect() &&
-                      //     currentQues.wrongClickCount >= currentQues.wrongClickLimit! - 1) {
-                      //   //todo show correct answer
-                      //   await Future.delayed(const Duration(seconds: 4));
-                      //   questionController.nextQuestion();
-                      // } else if (currentQues.wrongClickCount >= currentQues.wrongClickLimit! - 1) {
-                      //   return;
-                      // }
+                      if (questionController.isUIWaitingMode()) return;
+                      await Get.find<AudioController>().padKeySound();
                       if (!selectedKeyPad.isKeyClicked()) {
                         questionController.padKeyClickAction(selectedPadKey: selectedKeyPad);
                       } else if (selectedKeyPad.isKeyClicked() && !selectedKeyPad.isKeyMatched()) {
@@ -203,11 +202,11 @@ class PlayScreen extends StatelessWidget {
                     },
                     child: AnimatedPhysicalModel(
                       duration: const Duration(milliseconds: 100),
-                      curve: Curves.fastOutSlowIn,
+                      curve: Curves.bounceOut,
                       elevation: selectedKeyPad.isKeyClicked() ? 9 : 1,
                       shape: BoxShape.circle,
-                      color: Colors.white,
-                      shadowColor: Colors.black,
+                      color: Colors.black45,
+                      shadowColor: Colors.white,
                       child: Container(
                         height: screenSize.width * 0.14,
                         width: screenSize.width * 0.13,

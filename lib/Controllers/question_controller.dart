@@ -8,6 +8,7 @@ import '../Models/answer_key.dart';
 import '../Models/padkey.dart';
 import '../UI/finish_screen.dart';
 import '../WordBank/alphabet.dart';
+import 'audio_controller.dart';
 
 class QuestionController extends GetxController {
   var _listQuestions = [];
@@ -58,18 +59,22 @@ class QuestionController extends GetxController {
   }
 
   _checkFailOrDone() async {
+    if (isUIWaitingMode()) return;
     bool isClickLimitExceed = _currentQuestion.wrongClickCount >= _currentQuestion.wrongClickLimit!;
     String answeredString = _currentQuestion.answerKeyMap!.map((m) => m.currentValue).join("");
     var isOK = answeredString == _currentQuestion.question;
 
     if (isClickLimitExceed) {
+      await Get.find<AudioController>().failedSound();
       _currentQuestion.isClickLimitFail = true;
       _showCorrectAnswer();
       await Future.delayed(const Duration(seconds: 5));
       _setNextQuestion();
     } else if (isOK) {
+      await Get.find<AudioController>().doneSound();
       _currentQuestion.isDone = true;
-      await Future.delayed(const Duration(seconds: 2));
+
+      await Future.delayed(const Duration(seconds: 5));
       Get.find<PlayerController>().addQuestionPrizeToPlayerWallet();
       _setNextQuestion();
     }
@@ -99,12 +104,12 @@ class QuestionController extends GetxController {
     _currentQuestion.wrongClickCount = 0;
   }
 
-  _isUIWaitingMode() {
+  isUIWaitingMode() {
     return (_currentQuestion.isDone || _currentQuestion.isClickLimitFail);
   }
 
   void generateHint() async {
-    if (_isUIWaitingMode()) return;
+    if (isUIWaitingMode()) return;
     var playerController = Get.find<PlayerController>();
     if (playerController.thePlayer().hintRight == 0) return;
     playerController.reduceHintRightNum();
@@ -131,7 +136,7 @@ class QuestionController extends GetxController {
   }
 
   void skipQuestion() {
-    if (_isUIWaitingMode())  return;
+    if (isUIWaitingMode()) return;
     var playerController = Get.find<PlayerController>();
     if (playerController.thePlayer().skipRight == 0) return;
     _listQuestions.add(_createAQuestion());
@@ -266,7 +271,7 @@ class QuestionController extends GetxController {
   }
 
   reShuffleQuestionKeyPad() {
-   if(_isUIWaitingMode()) return;
+    if (isUIWaitingMode()) return;
     _currentQuestion.pedKeyMap!.shuffle();
     update();
   }
