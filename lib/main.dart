@@ -4,8 +4,10 @@ import '../Controllers/init_controllers.dart';
 import 'game_initialize.dart';
 
 //todo admob
+//todo signIn Google
+//todo FireStore
+
 //todo package name change
-//
 //todo time limit
 
 //todo alt: oyun sonunda bitime puanı ver. Ve bitmeden önce rewarded izlettir.? yada başta?

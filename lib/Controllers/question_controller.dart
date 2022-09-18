@@ -9,8 +9,10 @@ import '../Models/padkey.dart';
 import '../UI/finish_screen.dart';
 import '../WordBank/alphabet.dart';
 import 'audio_controller.dart';
+import 'play_screen_controller.dart';
 
 class QuestionController extends GetxController {
+  static QuestionController get to => Get.find<QuestionController>();
   var _listQuestions = [];
   var indexQuest = 0;
 
@@ -65,20 +67,20 @@ class QuestionController extends GetxController {
     var isOK = answeredString == _currentQuestion.question;
 
     if (isClickLimitExceed) {
-      await Get.find<AudioController>().failedSound();
+      await AudioController.to.failedSound();
       _currentQuestion.isClickLimitFail = true;
       _showCorrectAnswer();
       await Future.delayed(const Duration(seconds: 5));
       _setNextQuestion();
     } else if (isOK) {
-      await Get.find<AudioController>().doneSound();
+      await AudioController.to.doneSound();
       _currentQuestion.isDone = true;
-
       await Future.delayed(const Duration(seconds: 5));
       Get.find<PlayerController>().addQuestionPrizeToPlayerWallet();
       _setNextQuestion();
     }
-    update();
+
+    // update();
   }
 
   _showCorrectAnswer() {
@@ -89,6 +91,7 @@ class QuestionController extends GetxController {
   }
 
   _setNextQuestion() async {
+    PlayScreenController().flipCardController.toggleCard();
     _resetQuestionVariables();
 
     if (listQuestions.length - 1 > indexQuest) {

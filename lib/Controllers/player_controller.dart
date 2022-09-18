@@ -4,6 +4,8 @@ import '../Models/player.dart';
 import '../Utils/constant_data.dart';
 
 class PlayerController extends GetxController {
+  static PlayerController get to=> PlayerController();
+
   final thePlayer = Player(name: "test").obs;
 
   reduceSkipRightNum() {

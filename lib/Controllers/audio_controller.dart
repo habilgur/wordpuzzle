@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 
 class AudioController extends GetxController {
+  static AudioController get to => Get.find<AudioController>();
   late AudioPlayer player;
 
   @override
@@ -22,6 +23,11 @@ class AudioController extends GetxController {
 
   Future<void> doneSound() async {
     await player.setAsset('assets/audio/correct.mp3');
+    player.play();
+  }
+
+  flipSound() async{
+    await player.setAsset('assets/audio/limitedReward.mp3');
     player.play();
   }
 

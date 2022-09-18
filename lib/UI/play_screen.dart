@@ -1,5 +1,7 @@
+import 'package:flip_card/flip_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:wordpuzzle/Controllers/play_screen_controller.dart';
 import '../Controllers/audio_controller.dart';
 import '../Controllers/dialog_controller.dart';
 import '../Controllers/player_controller.dart';
@@ -7,8 +9,7 @@ import '../Controllers/question_controller.dart';
 import '../Models/question.dart';
 import '../Utils/constant_data.dart';
 
-final playerController = Get.find<PlayerController>();
-final questionController = Get.find<QuestionController>();
+
 
 class PlayScreen extends StatelessWidget {
   final AssetImage randomBg;
@@ -17,8 +18,9 @@ class PlayScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    
     return WillPopScope(
-      onWillPop: () async => await Get.find<DialogController>().showExitWarn(),
+      onWillPop: () async => await DialogController.to.showExitWarn(),
       child: GetBuilder<QuestionController>(builder: (_) {
         var currentQues = _.currentQuestion;
         return Container(
@@ -50,7 +52,7 @@ class PlayScreen extends StatelessWidget {
         flex: 3,
         child: Container(
           decoration: BoxDecoration(
-              color: Colors.black45,
+              color: Colors.black54,
               borderRadius: const BorderRadius.all(Radius.circular(15)),
               border: Border.all(
                 color: Colors.white70,
@@ -62,7 +64,7 @@ class PlayScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Obx(() => Text(
-                    "Ödül: ${((playerController.thePlayer().gamePrize)).toStringAsFixed(2)}₺",
+                    "Ödül: ${((PlayerController.to.thePlayer().gamePrize)).toStringAsFixed(2)}₺",
                     textScaleFactor: 3,
                     style: const TextStyle(color: Colors.white),
                   )),
@@ -76,7 +78,7 @@ class PlayScreen extends StatelessWidget {
                 style: TextStyle(color: Colors.white),
               ),
               Text(
-                "Ques:${questionController.indexQuest + 1} / ${questionController.listQuestions.length}",
+                "Ques:${QuestionController.to.indexQuest + 1} / ${QuestionController.to.listQuestions.length}",
                 style: const TextStyle(color: Colors.white),
               ),
             ],
@@ -87,20 +89,43 @@ class PlayScreen extends StatelessWidget {
   questionPart(Question currentQues) {
     return Expanded(
       flex: 5,
-      child: Container(
-        decoration: BoxDecoration(
-            color: Colors.black45,
-            borderRadius: const BorderRadius.all(Radius.circular(15)),
-            border: Border.all(
-              color: Colors.white70,
-              width: 1,
-            )),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            answerKeys(currentQues),
-            padKeys(currentQues),
-          ],
+      child: FlipCard(
+        direction: FlipDirection.values[QuestionController.to.indexQuest%2],
+        onFlip: () => AudioController.to.flipSound(),
+        flipOnTouch: false,
+        controller: PlayScreenController.to.flipCardController,
+        speed: 400,
+        front: Container(
+          decoration: BoxDecoration(
+              color: Colors.black54,
+              borderRadius: const BorderRadius.all(Radius.circular(15)),
+              border: Border.all(
+                color: Colors.white70,
+                width: 1,
+              )),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              answerKeys(currentQues),
+              padKeys(currentQues),
+            ],
+          ),
+        ),
+        back: Container(
+          decoration: BoxDecoration(
+              color: Colors.black54,
+              borderRadius: const BorderRadius.all(Radius.circular(15)),
+              border: Border.all(
+                color: Colors.white70,
+                width: 1,
+              )),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              answerKeys(currentQues),
+              padKeys(currentQues),
+            ],
+          ),
         ),
       ),
     );
@@ -137,7 +162,7 @@ class PlayScreen extends StatelessWidget {
                 return InkWell(
                   onTap: () {
                     if (!answerKeyItem.isClickable()) return;
-                    questionController.toggleAnswerKeyOnSelectStatus(answerKeyItem);
+                    QuestionController.to.toggleAnswerKeyOnSelectStatus(answerKeyItem);
                   },
                   child: Row(
                     children: [
@@ -176,6 +201,20 @@ class PlayScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          // FlipFraseBoard(
+          //   flipType: FlipType.spinFlip,
+          //   axis: Axis.horizontal,
+          //   startLetter: 'A',
+          //   endFrase: 'FLUTTER',
+          //   fontSize: 20,
+          //   hingeWidth: 0.2,
+          //   hingeColor: Colors.greenAccent,
+          //   borderColor: Colors.white,
+          //   endColors: const [Colors.white,Colors.red],
+          //   letterSpacing: 3.0,
+          //   onDone: () => {},
+          //
+          // ),
           Container(
               padding: const EdgeInsets.all(5),
               alignment: Alignment.center,
@@ -187,25 +226,18 @@ class PlayScreen extends StatelessWidget {
                   var selectedKeyPad = currentQues.pedKeyMap![index];
                   Color color = Colors.white;
                   return InkWell(
-                    enableFeedback: false, // mute default click
-                    onTap: () async {
-                      if (questionController.isUIWaitingMode()) return;
-                      await Get.find<AudioController>().padKeySound();
-                      if (!selectedKeyPad.isKeyClicked()) {
-                        questionController.padKeyClickAction(selectedPadKey: selectedKeyPad);
-                      } else if (selectedKeyPad.isKeyClicked() && !selectedKeyPad.isKeyMatched()) {
-                        questionController.togglePadKeyClickStatus(selectedKeyPad);
-                        questionController.clearBoards();
-                      }
-                      questionController.checkCurrentStatusOfQuestion();
-                    },
-                    child: AnimatedPhysicalModel(
-                      duration: const Duration(milliseconds: 100),
-                      curve: Curves.bounceOut,
-                      elevation: selectedKeyPad.isKeyClicked() ? 9 : 1,
-                      shape: BoxShape.circle,
-                      color: Colors.black45,
-                      shadowColor: Colors.white,
+                      enableFeedback: false, // mute default click
+                      onTap: () async {
+                        if (QuestionController.to.isUIWaitingMode()) return;
+                        await AudioController.to.padKeySound();
+                        if (!selectedKeyPad.isKeyClicked()) {
+                          QuestionController.to.padKeyClickAction(selectedPadKey: selectedKeyPad);
+                        } else if (selectedKeyPad.isKeyClicked() && !selectedKeyPad.isKeyMatched()) {
+                          QuestionController.to.togglePadKeyClickStatus(selectedKeyPad);
+                          QuestionController.to.clearBoards();
+                        }
+                        QuestionController.to.checkCurrentStatusOfQuestion();
+                      },
                       child: Container(
                         height: screenSize.width * 0.14,
                         width: screenSize.width * 0.13,
@@ -233,9 +265,7 @@ class PlayScreen extends StatelessWidget {
                                     ),
                                     textScaleFactor: 1.8,
                                   ),
-                      ),
-                    ),
-                  );
+                      ));
                 }),
               )),
         ],
@@ -247,7 +277,7 @@ class PlayScreen extends StatelessWidget {
     return Expanded(
       child: Container(
         decoration: BoxDecoration(
-            color: Colors.black45,
+            color: Colors.black54,
             borderRadius: const BorderRadius.all(Radius.circular(15)),
             border: Border.all(
               color: Colors.white70,
@@ -269,17 +299,17 @@ class PlayScreen extends StatelessWidget {
               children: [
                 IconButton(
                   icon: const Icon(Icons.double_arrow_sharp),
-                  iconSize: 35,
-                  color: playerController.thePlayer().skipRight == 0 ? Colors.white70 : Colors.cyanAccent,
+                  iconSize: 30,
+                  color: PlayerController.to.thePlayer().skipRight == 0 ? Colors.white70 : Colors.lightBlue,
                   onPressed: () {
-                    questionController.skipQuestion();
+                    QuestionController.to.skipQuestion();
                   },
                 ),
                 Obx(
                   () => Text(
-                    "X ${playerController.thePlayer().skipRight}",
+                    "X ${PlayerController.to.thePlayer().skipRight}",
                     style: TextStyle(
-                      color: playerController.thePlayer.value.skipRight == 0 ? Colors.white70 : Colors.white,
+                      color: PlayerController.to.thePlayer.value.skipRight == 0 ? Colors.white70 : Colors.white,
                     ),
                   ),
                 )
@@ -290,25 +320,25 @@ class PlayScreen extends StatelessWidget {
               children: [
                 IconButton(
                   icon: const Icon(Icons.diamond),
-                  iconSize: 35,
-                  color: playerController.thePlayer.value.hintRight == 0 ? Colors.white70 : Colors.cyanAccent,
+                  iconSize: 40,
+                  color: PlayerController.to.thePlayer.value.hintRight == 0 ? Colors.white70 : Colors.lightBlue,
                   onPressed: () {
-                    questionController.generateHint();
+                    QuestionController.to.generateHint();
                   },
                 ),
                 Text(
-                  "X ${playerController.thePlayer.value.hintRight}",
+                  "X ${PlayerController.to.thePlayer.value.hintRight}",
                   style:
-                      TextStyle(color: playerController.thePlayer.value.hintRight == 0 ? Colors.white70 : Colors.white),
+                      TextStyle(color: PlayerController.to.thePlayer.value.hintRight == 0 ? Colors.white70 : Colors.white),
                 )
               ],
             ),
             IconButton(
               icon: const Icon(Icons.all_inclusive_outlined),
-              iconSize: 35,
-              color: Colors.cyanAccent,
+              iconSize: 30,
+              color: Colors.lightBlue,
               onPressed: () {
-                questionController.reShuffleQuestionKeyPad();
+                QuestionController.to.reShuffleQuestionKeyPad();
               },
             ),
           ],
@@ -331,62 +361,4 @@ class PlayScreen extends StatelessWidget {
       ),
     );
   }
-
-  /// -------------------------------------------------------------------------------
-  ///                                FUNCTIONS
-  /// -------------------------------------------------------------------------------
-
-// void restartGame() {
-//   controller.listQuestions = QuestionServices().creteQuestionList();
-//   indexQues = 0;
-//   setState(() {});
-// }
-//
-// void nextQuestion() {
-//   if ( questionServices.listQuestions.length - 1 > indexQues) {
-//     setState(() {
-//       indexQues++;
-//     });
-//   } else {
-//     Navigator.push(context, MaterialPageRoute(builder: (context) => const FinishScreen()));
-//   }
-// }
-
-// generateHint() async {
-//   Question currentQues =  questionServices.listQuestions[indexQues] as Question;
-//
-//   if (thePlayer.hintRight == 0) return;
-//   thePlayer.reduceHintRightNum();
-//
-//   // Clear board and fill keyPad again to avoid empty search for already removed items from keyPad..
-//   currentQues.clearBoards();
-//
-//   List<AnswerKey> mapWithNoHints = currentQues.answerMap!.where((item) => !item.hintShow && item.isEmpty()).toList();
-//
-//   if (mapWithNoHints.isNotEmpty) {
-//     int indexHint = Random().nextInt(mapWithNoHints.length);
-//
-//     var userAnswer = mapWithNoHints[indexHint];
-//     userAnswer.currentValue = userAnswer.correctValue;
-//     userAnswer.hintShow = true;
-//
-//     // remove hint from keypad ( avoid multiple removing find first occurrence then clear)
-//     var theValue = currentQues.keyboardMap!.where((element) => element.value == userAnswer.correctValue).first;
-//     currentQues.keyboardMap!.remove(theValue);
-//
-//     if (currentQues.isAnswerCorrect()) {
-//       setState(() {
-//         currentQues.isDone = true;
-//         currentQues.wrongClickCount = 0;
-//         thePlayer.gamePrize = thePlayer.gamePrize + correctAnswerPrize;
-//       });
-//
-//       await Future.delayed(const Duration(seconds: 2));
-//       nextQuestion();
-//     }
-//
-//     // my wrong..not refresh.. damn..haha
-//     setState(() {});
-//   }
-// }
 }
