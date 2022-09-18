@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:wordpuzzle/Controllers/play_screen_controller.dart';
+import 'package:wordpuzzle/Controllers/timer_controller.dart';
 import '../Controllers/player_controller.dart';
 import '../Models/question.dart';
 import '../UI/finish_screen.dart';
@@ -93,11 +94,12 @@ class QuestionController extends GetxController {
   resetQuestionVariables() {
     _currentQuestion.isDone = false;
     _currentQuestion.isClickLimitFail = false;
+    _currentQuestion.isTimeUp = false;
     _currentQuestion.wrongClickCount = 0;
   }
 
   isQuestionWaitingMode() {
-    return (_currentQuestion.isDone || _currentQuestion.isClickLimitFail);
+    return (_currentQuestion.isDone || _currentQuestion.isClickLimitFail||_currentQuestion.isTimeUp);
   }
 
   void generateHint() async {
@@ -138,6 +140,7 @@ class QuestionController extends GetxController {
     _listQuestions.removeLast(); // Avoid increase length, delete last question before add a new question
     _listQuestions.add(_createAQuestion());
     PlayerController.to.reduceSkipRightNum();
+    TimerController.to.stopTimer();
     GameManagerController.to.setNextQuestion();
   }
 
@@ -146,35 +149,73 @@ class QuestionController extends GetxController {
     List<Question> quesList = [];
     var theList = turkishWords.where((item) => item.length < 12).toList();
 
-    for (int i = 0; i <= gameQuestionLength; i++) {
-      var question = theList[Random().nextInt(theList.length)].toLowerCase();
+    var maxLevel=11;
+    for (int level = 3; level <= maxLevel; level++) {
 
-      // Create User Answer Map
-      var userAnswerMap = List.generate(question
-          .split("")
-          .length, (index) {
-        return AnswerKey(correctValue: question.split("")[index], correctIndex: index);
-      });
+      // todo make it 3
+      for (int i = 1; i <= 1; i++) {
 
-      // Lets create Random Keys
-      var questionWithRandomKeys = createRandomKeys(question);
+        var lookingList=theList.where((e) => e.length==level).toList();
+        var question = lookingList[Random().nextInt(lookingList.length)].toLowerCase();
 
-      // Create Shuffled Chars
-      List<PadKey> shuffledPadKeys = createShufflePadKeys(questionWithRandomKeys);
+        // Create User Answer Map
+        var userAnswerMap = List.generate(question
+            .split("")
+            .length, (index) {
+          return AnswerKey(correctValue: question.split("")[index], correctIndex: index);
+        });
 
-      // Set Hinted AnswerMap for Game Start
-      createHintThenRemoveFromShuffledKeys(userAnswerMap, shuffledPadKeys);
+        // Lets create Random Keys
+        var questionWithRandomKeys = createRandomKeys(question);
 
-      // Generate Question List
-      quesList.add(
-        Question(
-          question: question,
-          pedKeyMap: shuffledPadKeys,
-          answerKeyMap: userAnswerMap,
-          wrongClickLimit: userAnswerMap.length - 2,
-        ),
-      );
+        // Create Shuffled Chars
+        List<PadKey> shuffledPadKeys = createShufflePadKeys(questionWithRandomKeys);
+
+        // Set Hinted AnswerMap for Game Start
+        createHintThenRemoveFromShuffledKeys(userAnswerMap, shuffledPadKeys);
+
+        // Generate Question List
+        quesList.add(
+          Question(
+            question: question,
+            pedKeyMap: shuffledPadKeys,
+            answerKeyMap: userAnswerMap,
+            wrongClickLimit: userAnswerMap.length - 2,
+            level:level
+          ),
+        );
+      }
     }
+
+    // for (int i = 0; i <= gameQuestionLength; i++) {
+    //   var question = theList[Random().nextInt(theList.length)].toLowerCase();
+    //
+    //   // Create User Answer Map
+    //   var userAnswerMap = List.generate(question
+    //       .split("")
+    //       .length, (index) {
+    //     return AnswerKey(correctValue: question.split("")[index], correctIndex: index);
+    //   });
+    //
+    //   // Lets create Random Keys
+    //   var questionWithRandomKeys = createRandomKeys(question);
+    //
+    //   // Create Shuffled Chars
+    //   List<PadKey> shuffledPadKeys = createShufflePadKeys(questionWithRandomKeys);
+    //
+    //   // Set Hinted AnswerMap for Game Start
+    //   createHintThenRemoveFromShuffledKeys(userAnswerMap, shuffledPadKeys);
+    //
+    //   // Generate Question List
+    //   quesList.add(
+    //     Question(
+    //       question: question,
+    //       pedKeyMap: shuffledPadKeys,
+    //       answerKeyMap: userAnswerMap,
+    //       wrongClickLimit: userAnswerMap.length - 2,
+    //     ),
+    //   );
+    // }
 
     return quesList;
   }

@@ -1,11 +1,12 @@
 
 import 'dart:async';
 import 'package:get/get.dart';
+import '../Controllers/game_manage_controller.dart';
 
 class TimerController extends GetxController {
   static TimerController get to=> Get.find<TimerController>();
 
-  static const maxSeconds = 60;
+  static const maxSeconds = 120;
   var seconds = maxSeconds;
   Timer? timer;
 
@@ -18,10 +19,12 @@ class TimerController extends GetxController {
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (seconds > 0) {
         seconds--;
+        GameManagerController.to.checkCurrentStatusOfQuestion();
         update();
       } else {
         stopTimer(rest: false);
         resetTimer();
+
       }
     });
   }
@@ -49,6 +52,6 @@ class TimerController extends GetxController {
 
   /// is Timer Completed?
   bool isCompleted() {
-    return seconds == maxSeconds || seconds == 0;
+    return  seconds == 0;
   }
 }

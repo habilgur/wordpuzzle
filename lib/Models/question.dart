@@ -6,10 +6,12 @@ class Question {
 
   bool isDone = false;
   bool isFull = false;
+  bool isTimeUp = false;
   List<AnswerKey>? answerKeyMap = <AnswerKey>[];
   List<PadKey>? pedKeyMap = <PadKey>[];
   int? wrongClickLimit=0;
   int wrongClickCount=0;
+  int? level;
 
   bool isClickLimitFail=false;
 
@@ -18,8 +20,9 @@ class Question {
     this.answerKeyMap,
     this.pedKeyMap,
     this.wrongClickLimit,
-    t
+    this.level,
   });
+
 
 }
 

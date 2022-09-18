@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import '../Controllers/init_controllers.dart';
 import 'UI/splash_screen.dart';
 
-
+// todo popup when bonus win user
 //todo question level type 3-4-5 ?? Sıralama nasıl olacak ?
 //todo admob
 //todo signIn Google

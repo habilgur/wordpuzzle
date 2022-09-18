@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:wordpuzzle/Controllers/player_controller.dart';
 import 'package:wordpuzzle/Controllers/question_controller.dart';
 import 'package:wordpuzzle/Controllers/timer_controller.dart';
@@ -37,6 +38,7 @@ class GameManagerController extends GetxController {
 
     QuestionController.to.resetQuestionVariables();
 
+    TimerController.to.startTimer();
     if (QuestionController.to.listQuestions.length - 1 > indexQuest) {
       _increaseIndex();
     } else {
@@ -46,6 +48,8 @@ class GameManagerController extends GetxController {
 
   void checkCurrentStatusOfQuestion() async {
     await _checkFailOrDone();
+    await _checkIsTimeUP();
+
   }
 
   _checkFailOrDone() async {
@@ -60,18 +64,31 @@ class GameManagerController extends GetxController {
       await AudioController.to.failedSound();
       curQues.isClickLimitFail = true;
       QuestionController.to.showCorrectAnswer();
-      await Future.delayed(const Duration(seconds: 3));
+      await Future.delayed(const Duration(seconds: 4));
       TimerController.to.stopTimer();
-      setNextQuestion;
+      setNextQuestion();
     } else if (isOK) {
+
       await AudioController.to.doneSound();
       curQues.isDone = true;
       await Future.delayed(const Duration(seconds: 3));
       Get.find<PlayerController>().addQuestionPrizeToPlayerWallet();
       TimerController.to.stopTimer();
-      setNextQuestion;
+      setNextQuestion();
     }
 
     // update();
+  }
+
+  _checkIsTimeUP()async{
+    if(TimerController.to.isCompleted()){
+
+      await AudioController.to.failedSound();
+      QuestionController.to.currentQuestion.isTimeUp=true;
+      QuestionController.to.showCorrectAnswer();
+      await Future.delayed(const Duration(seconds: 5));
+      setNextQuestion();
+
+    }
   }
 }

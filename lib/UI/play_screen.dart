@@ -1,4 +1,3 @@
-
 import 'package:flip_card/flip_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -14,9 +13,6 @@ import '../Utils/constant_data.dart';
 
 class PlayScreen extends StatelessWidget {
   const PlayScreen({Key? key}) : super(key: key);
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -48,9 +44,7 @@ class PlayScreen extends StatelessWidget {
               ),
             );
           });
-        }
-
-        ),
+        }),
       ),
     );
   }
@@ -154,7 +148,7 @@ class PlayScreen extends StatelessWidget {
               children: currentQues.answerKeyMap!.map((answerKeyItem) {
                 Color? color;
 
-                if (currentQues.isClickLimitFail) {
+                if (currentQues.isClickLimitFail || currentQues.isTimeUp) {
                   color = Colors.red;
                 } else if (currentQues.isDone) {
                   color = correctColor;
@@ -357,33 +351,26 @@ class PlayScreen extends StatelessWidget {
     );
   }
 
-  timerPart(){
-    return Container(
-      margin: const EdgeInsets.all(10),
-      width: Get.width*0.9,
-      height: Get.height*0.02,
-      color: Colors.green,
-      child: GetBuilder<TimerController>(
-          builder: (timerController) {
-            debugPrint(timerController.toString());
-            return SizedBox(
-              height: 10,
-              width: 100,
-              child:     Padding(
-                padding: const EdgeInsets.all(30),
-                child: LinearProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation(
-                      timerController.seconds == 60
-                          ? Colors.green
-                          : Colors.red),
-                  backgroundColor: const Color.fromARGB(
-                      255, 237, 237, 237),
-                  value: timerController.seconds /
-                      TimerController.maxSeconds,
-                ),
-              ),
-            );
-          }),
-    );
+  timerPart() {
+    return GetBuilder<TimerController>(builder: (timerController) {
+      debugPrint(timerController.seconds.toString());
+      debugPrint("--");
+      return Container(
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.white),
+        height: 15,
+        width: 300,
+        child: Padding(
+          padding: const EdgeInsets.all(3),
+          child: LinearProgressIndicator(
+            valueColor: QuestionController.to.currentQuestion.isTimeUp
+                ? const AlwaysStoppedAnimation(Colors.red)
+                : const AlwaysStoppedAnimation(Colors.green),
+
+            backgroundColor: Colors.black12,
+            value: timerController.seconds / TimerController.maxSeconds,
+          ),
+        ),
+      );
+    });
   }
 }
