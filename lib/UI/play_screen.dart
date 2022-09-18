@@ -1,49 +1,57 @@
+
 import 'package:flip_card/flip_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:wordpuzzle/Controllers/play_screen_controller.dart';
+import '../Controllers/game_manage_controller.dart';
+import '../Controllers/play_screen_controller.dart';
 import '../Controllers/audio_controller.dart';
 import '../Controllers/dialog_controller.dart';
 import '../Controllers/player_controller.dart';
 import '../Controllers/question_controller.dart';
+import '../Controllers/timer_controller.dart';
 import '../Models/question.dart';
 import '../Utils/constant_data.dart';
 
-
-
 class PlayScreen extends StatelessWidget {
-  final AssetImage randomBg;
+  const PlayScreen({Key? key}) : super(key: key);
 
-  const PlayScreen(this.randomBg, {super.key});
+
+
 
   @override
   Widget build(BuildContext context) {
-    
-    return WillPopScope(
-      onWillPop: () async => await DialogController.to.showExitWarn(),
-      child: GetBuilder<QuestionController>(builder: (_) {
-        var currentQues = _.currentQuestion;
-        return Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(image: randomBg, fit: BoxFit.cover),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                infoPart(currentQues),
-                const SizedBox(height: 2),
-                questionPart(currentQues),
-                const SizedBox(height: 2),
-                actionButtonsPart(currentQues),
-                const SizedBox(height: 2),
-                bannerPart(),
-              ],
-            ),
-          ),
-        );
-      }),
+    return Scaffold(
+      body: WillPopScope(
+        onWillPop: () async => await DialogController.to.showExitWarn(),
+        child: GetBuilder<GameManagerController>(builder: (_) {
+          return GetBuilder<QuestionController>(builder: (_) {
+            var currentQues = _.currentQuestion;
+            return Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(image: PlayScreenController.to.randomBg, fit: BoxFit.cover),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 50),
+                    infoPart(currentQues),
+                    const SizedBox(height: 2),
+                    questionPart(currentQues),
+                    const SizedBox(height: 2),
+                    actionButtonsPart(currentQues),
+                    const SizedBox(height: 2),
+                    bannerPart(),
+                  ],
+                ),
+              ),
+            );
+          });
+        }
+
+        ),
+      ),
     );
   }
 
@@ -78,9 +86,10 @@ class PlayScreen extends StatelessWidget {
                 style: TextStyle(color: Colors.white),
               ),
               Text(
-                "Ques:${QuestionController.to.indexQuest + 1} / ${QuestionController.to.listQuestions.length}",
+                "Ques:${GameManagerController.to.indexQuest + 1} / ${QuestionController.to.listQuestions.length}",
                 style: const TextStyle(color: Colors.white),
               ),
+              timerPart(), //todo
             ],
           ),
         ));
@@ -90,7 +99,7 @@ class PlayScreen extends StatelessWidget {
     return Expanded(
       flex: 5,
       child: FlipCard(
-        direction: FlipDirection.values[QuestionController.to.indexQuest%2],
+        direction: FlipDirection.values[GameManagerController.to.indexQuest % 2],
         onFlip: () => AudioController.to.flipSound(),
         flipOnTouch: false,
         controller: PlayScreenController.to.flipCardController,
@@ -201,20 +210,6 @@ class PlayScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // FlipFraseBoard(
-          //   flipType: FlipType.spinFlip,
-          //   axis: Axis.horizontal,
-          //   startLetter: 'A',
-          //   endFrase: 'FLUTTER',
-          //   fontSize: 20,
-          //   hingeWidth: 0.2,
-          //   hingeColor: Colors.greenAccent,
-          //   borderColor: Colors.white,
-          //   endColors: const [Colors.white,Colors.red],
-          //   letterSpacing: 3.0,
-          //   onDone: () => {},
-          //
-          // ),
           Container(
               padding: const EdgeInsets.all(5),
               alignment: Alignment.center,
@@ -228,7 +223,7 @@ class PlayScreen extends StatelessWidget {
                   return InkWell(
                       enableFeedback: false, // mute default click
                       onTap: () async {
-                        if (QuestionController.to.isUIWaitingMode()) return;
+                        if (QuestionController.to.isQuestionWaitingMode()) return;
                         await AudioController.to.padKeySound();
                         if (!selectedKeyPad.isKeyClicked()) {
                           QuestionController.to.padKeyClickAction(selectedPadKey: selectedKeyPad);
@@ -236,7 +231,7 @@ class PlayScreen extends StatelessWidget {
                           QuestionController.to.togglePadKeyClickStatus(selectedKeyPad);
                           QuestionController.to.clearBoards();
                         }
-                        QuestionController.to.checkCurrentStatusOfQuestion();
+                        GameManagerController.to.checkCurrentStatusOfQuestion();
                       },
                       child: Container(
                         height: screenSize.width * 0.14,
@@ -328,8 +323,8 @@ class PlayScreen extends StatelessWidget {
                 ),
                 Text(
                   "X ${PlayerController.to.thePlayer.value.hintRight}",
-                  style:
-                      TextStyle(color: PlayerController.to.thePlayer.value.hintRight == 0 ? Colors.white70 : Colors.white),
+                  style: TextStyle(
+                      color: PlayerController.to.thePlayer.value.hintRight == 0 ? Colors.white70 : Colors.white),
                 )
               ],
             ),
@@ -359,6 +354,36 @@ class PlayScreen extends StatelessWidget {
           // ),
         ],
       ),
+    );
+  }
+
+  timerPart(){
+    return Container(
+      margin: const EdgeInsets.all(10),
+      width: Get.width*0.9,
+      height: Get.height*0.02,
+      color: Colors.green,
+      child: GetBuilder<TimerController>(
+          builder: (timerController) {
+            debugPrint(timerController.toString());
+            return SizedBox(
+              height: 10,
+              width: 100,
+              child:     Padding(
+                padding: const EdgeInsets.all(30),
+                child: LinearProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation(
+                      timerController.seconds == 60
+                          ? Colors.green
+                          : Colors.red),
+                  backgroundColor: const Color.fromARGB(
+                      255, 237, 237, 237),
+                  value: timerController.seconds /
+                      TimerController.maxSeconds,
+                ),
+              ),
+            );
+          }),
     );
   }
 }

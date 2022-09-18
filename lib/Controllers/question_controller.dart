@@ -1,49 +1,72 @@
 import 'dart:math';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:wordpuzzle/Controllers/play_screen_controller.dart';
 import '../Controllers/player_controller.dart';
 import '../Models/question.dart';
+import '../UI/finish_screen.dart';
 import '../Utils/constant_data.dart';
 import '../WordBank/turkish_list.dart';
 import '../Models/answer_key.dart';
 import '../Models/padkey.dart';
-import '../UI/finish_screen.dart';
 import '../WordBank/alphabet.dart';
 import 'audio_controller.dart';
-import 'play_screen_controller.dart';
+import 'game_manage_controller.dart';
+
 
 class QuestionController extends GetxController {
   static QuestionController get to => Get.find<QuestionController>();
   var _listQuestions = [];
-  var indexQuest = 0;
+  //var indexQuest = 0;
+
 
   var _currentQuestion = Question();
 
   @override
   void onInit() {
-    _listQuestions = _creteQuestionList();
-    super.onInit();
-  }
+    // GameManagerController.to.indexQuest.obs.value.listen((value) {
+    //   gameManagerIndex=value;
+    //   debugPrint("$value index updated");
+    // });
+      super.onInit();
+    }
+
+
+
 
   List<Question> get listQuestions {
     return [..._listQuestions];
   }
 
-  Question get currentQuestion => _currentQuestion = listQuestions[indexQuest];
+  Question get currentQuestion => _currentQuestion = listQuestions[ GameManagerController.to.indexQuest];
+  //
+  // _increaseIndex() {
+  //   indexQuest++;
+  //   debugPrint("${indexQuest.toString()}  GameManager");
+  //   update();
+  // }
+  //
+  //
+  //
+  //
+  // setNextQuestion()  {
+  //   PlayScreenController.to.flipCardController.toggleCard();
+  //   //resetQuestionVariables();
+  //
+  //   if (QuestionController.to.listQuestions.length - 1 > indexQuest) {
+  //     _increaseIndex();
+  //   } else {
+  //     Get.to(()=>const FinishScreen());
+  //   }
+  // }
 
-  _increaseIndex() {
-    indexQuest++;
-    update();
+
+
+  void createQuestionList() {
+    _listQuestions = _creteQuestionList();
   }
 
-  _resetIndex() {
-    indexQuest = 0;
-    update();
-  }
 
-  void restartGame() {
-    _resetIndex();
-    _listQuestions = _creteQuestionList().obs;
-  }
 
   void clearBoards() {
     _clearAnswerKeyBoard();
@@ -56,72 +79,42 @@ class QuestionController extends GetxController {
     return complete;
   }
 
-  void checkCurrentStatusOfQuestion() async {
-    await _checkFailOrDone();
-  }
 
-  _checkFailOrDone() async {
-    if (isUIWaitingMode()) return;
-    bool isClickLimitExceed = _currentQuestion.wrongClickCount >= _currentQuestion.wrongClickLimit!;
-    String answeredString = _currentQuestion.answerKeyMap!.map((m) => m.currentValue).join("");
-    var isOK = answeredString == _currentQuestion.question;
-
-    if (isClickLimitExceed) {
-      await AudioController.to.failedSound();
-      _currentQuestion.isClickLimitFail = true;
-      _showCorrectAnswer();
-      await Future.delayed(const Duration(seconds: 3));
-      _setNextQuestion();
-    } else if (isOK) {
-      await AudioController.to.doneSound();
-      _currentQuestion.isDone = true;
-      await Future.delayed(const Duration(seconds: 3));
-      Get.find<PlayerController>().addQuestionPrizeToPlayerWallet();
-      _setNextQuestion();
-    }
-
-    // update();
-  }
-
-  _showCorrectAnswer() {
+  showCorrectAnswer() {
     for (var key in _currentQuestion.answerKeyMap!) {
       key.currentValue = key.correctValue;
     }
     update();
   }
 
-  _setNextQuestion() async {
-    PlayScreenController.to.flipCardController.toggleCard();
-    _resetQuestionVariables();
 
-    if (listQuestions.length - 1 > indexQuest) {
-      _increaseIndex();
-    } else {
-      Get.to(const FinishScreen());
-    }
-  }
 
-  _resetQuestionVariables() {
+
+  resetQuestionVariables() {
     _currentQuestion.isDone = false;
     _currentQuestion.isClickLimitFail = false;
     _currentQuestion.wrongClickCount = 0;
   }
 
-  isUIWaitingMode() {
+  isQuestionWaitingMode() {
     return (_currentQuestion.isDone || _currentQuestion.isClickLimitFail);
   }
 
   void generateHint() async {
-    if (isUIWaitingMode()) return;
-    var playerController = Get.find<PlayerController>();
-    if (playerController.thePlayer().hintRight == 0) return;
-    playerController.reduceHintRightNum();
+    if (isQuestionWaitingMode()) return;
+
+    if (PlayerController.to
+        .thePlayer()
+        .hintRight == 0) return;
+
+    await AudioController.to.skipSound();
+    PlayerController.to.reduceHintRightNum();
 
     // Clear board and fill keyPad again to avoid empty search for already removed items from keyPad..
     clearBoards();
 
     List<AnswerKey> mapWithNoHints =
-        _currentQuestion.answerKeyMap!.where((item) => !item.hintShow && item.isEmpty()).toList();
+    _currentQuestion.answerKeyMap!.where((item) => !item.hintShow && item.isEmpty()).toList();
 
     if (mapWithNoHints.isNotEmpty) {
       int indexHint = Random().nextInt(mapWithNoHints.length);
@@ -133,18 +126,19 @@ class QuestionController extends GetxController {
       // remove hint from keypad ( avoid multiple removing find first occurrence then clear)
       var theValue = _currentQuestion.pedKeyMap!.where((element) => element.value == userAnswer.correctValue).first;
       _currentQuestion.pedKeyMap!.remove(theValue);
-
-      //checkAnswerCorrect();
     }
   }
 
-  void skipQuestion() {
-    if (isUIWaitingMode()) return;
-    var playerController = Get.find<PlayerController>();
-    if (playerController.thePlayer().skipRight == 0) return;
+  void skipQuestion() async {
+    if (isQuestionWaitingMode()) return;
+    if (PlayerController.to
+        .thePlayer()
+        .skipRight == 0) return;
+    await AudioController.to.skipSound();
+    _listQuestions.removeLast(); // Avoid increase length, delete last question before add a new question
     _listQuestions.add(_createAQuestion());
-    playerController.reduceSkipRightNum();
-    _setNextQuestion();
+    PlayerController.to.reduceSkipRightNum();
+    GameManagerController.to.setNextQuestion();
   }
 
   /// CREATE QUESTIONS ------------------------------------------------------------
@@ -156,7 +150,9 @@ class QuestionController extends GetxController {
       var question = theList[Random().nextInt(theList.length)].toLowerCase();
 
       // Create User Answer Map
-      var userAnswerMap = List.generate(question.split("").length, (index) {
+      var userAnswerMap = List.generate(question
+          .split("")
+          .length, (index) {
         return AnswerKey(correctValue: question.split("")[index], correctIndex: index);
       });
 
@@ -189,7 +185,9 @@ class QuestionController extends GetxController {
     var question = theList[Random().nextInt(theList.length)].toLowerCase();
 
     // Create User Answer Map
-    var userAnswerMap = List.generate(question.split("").length, (index) {
+    var userAnswerMap = List.generate(question
+        .split("")
+        .length, (index) {
       return AnswerKey(correctValue: question.split("")[index], correctIndex: index);
     });
 
@@ -240,7 +238,9 @@ class QuestionController extends GetxController {
   }
 
   void createHintThenRemoveFromShuffledKeys(List<AnswerKey> userAnswerMap, List<PadKey> shuffledPadKeys) {
-    int rand1 = 0, rand2 = 0, rand3 = 0;
+    int rand1 = 0,
+        rand2 = 0,
+        rand3 = 0;
     List<int> rndList = [];
     while (rand1 == rand2 || rand2 == rand3 || rand1 == rand3) {
       rand1 = Random().nextInt(userAnswerMap.length);
@@ -268,13 +268,16 @@ class QuestionController extends GetxController {
       answerKeyWithHint.currentValue = answerKeyWithHint.correctValue;
 
       // Remove hinted value from shuffle Keys
-      var removeKeyPadWithHint = shuffledPadKeys.where((k) => k.value == answerKeyWithHint.currentValue).first;
+      var removeKeyPadWithHint = shuffledPadKeys
+          .where((k) => k.value == answerKeyWithHint.currentValue)
+          .first;
       shuffledPadKeys.remove(removeKeyPadWithHint);
     }
   }
 
-  reShuffleQuestionKeyPad() {
-    if (isUIWaitingMode()) return;
+  reShuffleQuestionKeyPad() async {
+    if (isQuestionWaitingMode()) return;
+    await AudioController.to.shuffleSound();
     _currentQuestion.pedKeyMap!.shuffle();
     update();
   }

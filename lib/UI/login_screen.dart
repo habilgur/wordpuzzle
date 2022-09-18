@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:wordpuzzle/game_initialize.dart';
+import 'package:wordpuzzle/UI/play_screen.dart';
+import '../Controllers/game_manage_controller.dart';
 import '../Controllers/login_screen_controller.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -31,20 +32,20 @@ class LoginScreen extends StatelessWidget {
                           CircleWidget(
                             angle: controller.rotationAnimation.value,
                             size: Get.width * 0.4,
-                            firstImageUrl: 'assets/eth.png',
-                            secondImageUrl: 'assets/luna.png',
+                            firstImageUrl: const Icon(Icons.currency_bitcoin),
+                            secondImageUrl: const Icon(Icons.currency_exchange),
                           ),
                           CircleWidget(
                             angle: controller.rotationAnimation.value + 180,
                             size: Get.width * 0.7,
-                            firstImageUrl: 'assets/ens.png',
-                            secondImageUrl: 'assets/sol.png',
+                            firstImageUrl: const Icon(Icons.currency_lira_outlined),
+                            secondImageUrl: const Icon(Icons.monetization_on_outlined),
                           ),
                           CircleWidget(
                             angle: controller.rotationAnimation.value + 90,
                             size: Get.width,
-                            firstImageUrl: 'assets/btc.png',
-                            secondImageUrl: 'assets/xrp.png',
+                            firstImageUrl: const Icon(Icons.currency_bitcoin),
+                            secondImageUrl: const Icon(Icons.currency_exchange),
                           ),
                         ],
                       ),
@@ -156,7 +157,10 @@ class LoginScreen extends StatelessWidget {
                         // register button
                         const SizedBox(height: 10),
                         TextButton(
-                          onPressed: () {Get.to(const GameInit());},
+                          onPressed: () {
+                            GameManagerController.to.startGame();
+                            Get.to(()=>const PlayScreen());
+                            },
                           style: TextButton.styleFrom(
                             side: const BorderSide(
                               color: Colors.black,
@@ -185,10 +189,10 @@ class LoginScreen extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-        );
-      },
-    );
+
+          ));
+        },
+      );
   }
 }
 
@@ -202,8 +206,8 @@ class CircleWidget extends StatelessWidget {
   }) : super(key: key);
   final double angle;
   final double size;
-  final String firstImageUrl;
-  final String secondImageUrl;
+  final Icon firstImageUrl;
+  final Icon secondImageUrl;
   final double radius = 35;
 
   @override
@@ -234,10 +238,7 @@ class CircleWidget extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: ClipOval(
-                  child: Image.asset(
-                    secondImageUrl,
-                    fit: BoxFit.cover,
-                  ),
+                  child: firstImageUrl
                 ),
               ),
             ),
@@ -250,10 +251,7 @@ class CircleWidget extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: ClipOval(
-                  child: Image.asset(
-                    firstImageUrl,
-                    fit: BoxFit.cover,
-                  ),
+                  child: secondImageUrl
                 ),
               ),
             ),

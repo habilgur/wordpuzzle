@@ -6,7 +6,7 @@ import 'dart:math';
 import 'package:flutter/animation.dart';
 
 class LoginScreenController extends GetxController with GetTickerProviderStateMixin {
-  static LoginScreenController get to=> LoginScreenController();
+  static LoginScreenController get to=> Get.find<LoginScreenController>();
 
   late final animationController = AnimationController(
     vsync: this,

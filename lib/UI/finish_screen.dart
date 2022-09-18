@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wordpuzzle/game_initialize.dart';
+import 'package:wordpuzzle/UI/play_screen.dart';
 
 class FinishScreen extends StatelessWidget {
   const FinishScreen({Key? key}) : super(key: key);
@@ -13,7 +13,7 @@ class FinishScreen extends StatelessWidget {
         children: [
           ElevatedButton(
             onPressed: () {
-             Navigator.push(context, MaterialPageRoute(builder: (context)=>const GameInit()));
+             Navigator.push(context, MaterialPageRoute(builder: (context)=>const PlayScreen()));
             },
             child: const Text("reload"),
           ),

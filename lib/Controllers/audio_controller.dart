@@ -12,7 +12,7 @@ class AudioController extends GetxController {
   }
 
   Future<void> padKeySound() async {
-    await player.setAsset('assets/audio/put.mp3');
+    await player.setAsset('assets/audio/pull.mp3');
     player.play();
   }
 
@@ -30,5 +30,22 @@ class AudioController extends GetxController {
     await player.setAsset('assets/audio/limitedReward.mp3');
     player.play();
   }
+
+  //todo find audio
+  hintSound() async{
+    await player.setAsset('assets/audio/put.mp3');
+    player.play();
+  }
+  //todo find audio
+  skipSound() async{
+    await player.setAsset('assets/audio/put.mp3');
+    player.play();
+  }
+  //todo find audio
+  shuffleSound() async{
+    await player.setAsset('assets/audio/put.mp3');
+    player.play();
+  }
+
 
 }

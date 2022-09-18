@@ -4,7 +4,7 @@ import 'package:wordpuzzle/UI/login_screen.dart';
 import '../UI/login_screen.dart';
 
 class DialogController extends GetxController {
-  static DialogController get to=> DialogController();
+  static DialogController get to=> Get.find<DialogController>();
 
   var bgColor = Colors.blueGrey;
   final textStyle = const TextStyle(color: Colors.white);
@@ -17,9 +17,13 @@ class DialogController extends GetxController {
       backgroundColor: bgColor,
       titleStyle: textStyle,
       middleTextStyle: textStyle,
-      cancel: TextButton(child: Text("EVET", style: textStyle), onPressed: () => Get.to(const LoginScreen())),
+      cancel: TextButton(child: Text("EVET", style: textStyle), onPressed: () {
+        Get.off(const LoginScreen());
+
+      } ),
       confirm: TextButton(child: Text("HAYIR", style: textStyle), onPressed: () => Get.back()),
       actions: <Widget>[],
+
     );
   }
 }

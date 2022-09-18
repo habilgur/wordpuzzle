@@ -4,9 +4,11 @@ import '../Models/player.dart';
 import '../Utils/constant_data.dart';
 
 class PlayerController extends GetxController {
-  static PlayerController get to=> PlayerController();
+  static PlayerController get to=> Get.find<PlayerController>();
 
   final thePlayer = Player(name: "test").obs;
+
+
 
   reduceSkipRightNum() {
     thePlayer.update((val) {
@@ -26,4 +28,12 @@ class PlayerController extends GetxController {
 
     update();
   }
+
+  resetPlayerFields(){
+    thePlayer.value.skipRight=2;
+    thePlayer.value.hintRight=2;
+    thePlayer.value.gamePrize=0;
+
+  }
+
 }
