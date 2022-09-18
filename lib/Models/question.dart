@@ -19,7 +19,7 @@ class Question {
     this.question,
     this.answerKeyMap,
     this.pedKeyMap,
-    this.wrongClickLimit,
+    this.wrongClickLimit=0,
     this.level,
   });
 

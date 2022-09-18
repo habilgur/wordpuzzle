@@ -225,7 +225,6 @@ class PlayScreen extends StatelessWidget {
                           QuestionController.to.togglePadKeyClickStatus(selectedKeyPad);
                           QuestionController.to.clearBoards();
                         }
-                        GameManagerController.to.checkCurrentStatusOfQuestion();
                       },
                       child: Container(
                         height: screenSize.width * 0.14,

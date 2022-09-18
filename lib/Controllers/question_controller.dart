@@ -18,6 +18,7 @@ import 'game_manage_controller.dart';
 class QuestionController extends GetxController {
   static QuestionController get to => Get.find<QuestionController>();
   var _listQuestions = [];
+
   //var indexQuest = 0;
 
 
@@ -29,10 +30,8 @@ class QuestionController extends GetxController {
     //   gameManagerIndex=value;
     //   debugPrint("$value index updated");
     // });
-      super.onInit();
-    }
-
-
+    super.onInit();
+  }
 
 
   List<Question> get listQuestions {
@@ -40,6 +39,7 @@ class QuestionController extends GetxController {
   }
 
   Question get currentQuestion => _currentQuestion = listQuestions[ GameManagerController.to.indexQuest];
+
   //
   // _increaseIndex() {
   //   indexQuest++;
@@ -62,11 +62,9 @@ class QuestionController extends GetxController {
   // }
 
 
-
   void createQuestionList() {
     _listQuestions = _creteQuestionList();
   }
-
 
 
   void clearBoards() {
@@ -89,8 +87,6 @@ class QuestionController extends GetxController {
   }
 
 
-
-
   resetQuestionVariables() {
     _currentQuestion.isDone = false;
     _currentQuestion.isClickLimitFail = false;
@@ -99,7 +95,7 @@ class QuestionController extends GetxController {
   }
 
   isQuestionWaitingMode() {
-    return (_currentQuestion.isDone || _currentQuestion.isClickLimitFail||_currentQuestion.isTimeUp);
+    return (_currentQuestion.isDone || _currentQuestion.isClickLimitFail || _currentQuestion.isTimeUp);
   }
 
   void generateHint() async {
@@ -133,15 +129,18 @@ class QuestionController extends GetxController {
 
   void skipQuestion() async {
     if (isQuestionWaitingMode()) return;
+
     if (PlayerController.to
         .thePlayer()
         .skipRight == 0) return;
     await AudioController.to.skipSound();
-    _listQuestions.removeLast(); // Avoid increase length, delete last question before add a new question
-    _listQuestions.add(_createAQuestion());
     PlayerController.to.reduceSkipRightNum();
     TimerController.to.stopTimer();
     GameManagerController.to.setNextQuestion();
+
+
+
+
   }
 
   /// CREATE QUESTIONS ------------------------------------------------------------
@@ -149,13 +148,11 @@ class QuestionController extends GetxController {
     List<Question> quesList = [];
     var theList = turkishWords.where((item) => item.length < 12).toList();
 
-    var maxLevel=11;
+    var maxLevel = 11;
     for (int level = 3; level <= maxLevel; level++) {
-
       // todo make it 3
       for (int i = 1; i <= 1; i++) {
-
-        var lookingList=theList.where((e) => e.length==level).toList();
+        var lookingList = theList.where((e) => e.length == level).toList();
         var question = lookingList[Random().nextInt(lookingList.length)].toLowerCase();
 
         // Create User Answer Map
@@ -177,11 +174,11 @@ class QuestionController extends GetxController {
         // Generate Question List
         quesList.add(
           Question(
-            question: question,
-            pedKeyMap: shuffledPadKeys,
-            answerKeyMap: userAnswerMap,
-            wrongClickLimit: userAnswerMap.length - 2,
-            level:level
+              question: question,
+              pedKeyMap: shuffledPadKeys,
+              answerKeyMap: userAnswerMap,
+              wrongClickLimit: userAnswerMap.length - 2,
+              level: level
           ),
         );
       }
@@ -220,10 +217,12 @@ class QuestionController extends GetxController {
     return quesList;
   }
 
-  Question _createAQuestion() {
+  Question _createAQuestion(int skippedLevel) {
     var theList = turkishWords.where((item) => item.length < 12).toList();
 
-    var question = theList[Random().nextInt(theList.length)].toLowerCase();
+    var lookingList = theList.where((e) => e.length == skippedLevel).toList();
+    var question = lookingList[Random().nextInt(lookingList.length)].toLowerCase();
+
 
     // Create User Answer Map
     var userAnswerMap = List.generate(question
@@ -246,6 +245,7 @@ class QuestionController extends GetxController {
       question: question,
       pedKeyMap: shuffledPadKeys,
       answerKeyMap: userAnswerMap,
+      level: skippedLevel,
     );
   }
 
