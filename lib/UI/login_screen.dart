@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:wordpuzzle/UI/play_screen.dart';
 import 'package:wordpuzzle/game_initialize.dart';
 import '../Controllers/login_screen_controller.dart';
 

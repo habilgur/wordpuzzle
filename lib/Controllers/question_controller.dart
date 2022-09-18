@@ -70,12 +70,12 @@ class QuestionController extends GetxController {
       await AudioController.to.failedSound();
       _currentQuestion.isClickLimitFail = true;
       _showCorrectAnswer();
-      await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(const Duration(seconds: 3));
       _setNextQuestion();
     } else if (isOK) {
       await AudioController.to.doneSound();
       _currentQuestion.isDone = true;
-      await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(const Duration(seconds: 3));
       Get.find<PlayerController>().addQuestionPrizeToPlayerWallet();
       _setNextQuestion();
     }
@@ -91,7 +91,7 @@ class QuestionController extends GetxController {
   }
 
   _setNextQuestion() async {
-    PlayScreenController().flipCardController.toggleCard();
+    PlayScreenController.to.flipCardController.toggleCard();
     _resetQuestionVariables();
 
     if (listQuestions.length - 1 > indexQuest) {

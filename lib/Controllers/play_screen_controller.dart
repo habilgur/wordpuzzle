@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 class PlayScreenController extends GetxController{
   static PlayScreenController get to => Get.find<PlayScreenController>();
 
-  late FlipCardController flipCardController;
+  late  FlipCardController flipCardController;
 
   @override
   void onInit() {
